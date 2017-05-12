@@ -10,27 +10,39 @@ from urllib.parse import urlencode
 
 import requests
 
+
 def authorization_header(client_id, client_secret):
     pair = '{}:{}'.format(client_id, client_secret)
     encoded = b64encode(pair.encode('ascii')).decode('ascii')
     return 'Basic {}'.format(encoded)
 
-def authorization_data(code, redirect):
-    params = {
-        'grant_type':   'authorization_code',
-        'redirect_uri': redirect,
-        'code':         code
-    }
-    return urlencode(params)
 
-def request(uri, code, client_id, client_secret, redirect):
+def authorize(uri, code, client_id, client_secret, redirect):
     headers = {
         'authorization': authorization_header(client_id, client_secret),
-        'content-type':  'application/x-www-form-urlencoded',
-        'accept':        'application/json'
+        'content-type': 'application/x-www-form-urlencoded',
+        'accept': 'application/json'
     }
-    data = authorization_data(code, redirect)
+    data = {
+        'grant_type': 'authorization_code',
+        'redirect_uri': redirect,
+        'code': code
+    }
+    res = requests.post(uri, headers=headers, data=urlencode(data))
+    if res.status_code == 200:
+        return res.json()
 
-    res = requests.post(uri, headers=headers, data=data)
+
+def refresh(uri, code, client_id, client_secret):
+    headers = {
+        'authorization': authorization_header(client_id, client_secret),
+        'content-type': 'application/x-www-form-urlencoded',
+        'accept': 'application/json'
+    }
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': code
+    }
+    res = requests.post(uri, headers=headers, data=urlencode(data))
     if res.status_code == 200:
         return res.json()

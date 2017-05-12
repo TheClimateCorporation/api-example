@@ -2,18 +2,6 @@
 
 Example app using Climate's API.
 
-## Running the example
-
-1. Follow steps in _Setup_
-2. Set `client_id`, `client_secret`, and `api_key` values in main.py
-3. Start the server:
-
-```bash
-python3 main.py
-```
-
-4. Open a browser to [localhost:8080/home](http://localhost:8080/home)
-
 ## Setup
 
 Install python 3.6+.
@@ -36,6 +24,26 @@ When you're done testing the example, deactivate the virtual environment with:
 ```bash
 deactivate
 ```
+
+## Running the example
+
+1. Follow steps in _Setup_
+
+1. Set the following environment variables to the values provided by Climate:
+
+    ```
+    export CLIMATE_API_ID="partner-fooco"
+    export CLIMATE_API_SECRET="azbq56fpadhnt8oukoeani2a4w"
+    export CLIMATE_API_KEY="partner-fooco-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
+    ```
+    
+3. Start the server:
+
+    ```bash
+    python3 main.py
+    ```
+
+4. Open a browser to [localhost:8080/home](http://localhost:8080/home)
 
 ## License
 
