@@ -1,7 +1,8 @@
 """
-Climate client
+Climate API demo code. This module shows how to:
 
 - Log in with Climate
+- Refresh the access_token
 - Fetch fields
 - Fetch field boundaries
 - Upload files
@@ -10,12 +11,11 @@ License:
 Copyright © 2017 The Climate Corporation
 """
 
-from urllib.parse import urlencode
-
 import requests
 
 import file
-import oauth2
+from base64 import b64encode
+from urllib.parse import urlencode
 
 json_content_type = 'application/json'
 binary_content_type = 'application/octet-stream'
@@ -24,37 +24,113 @@ base_login_uri = 'https://climate.com/static/app-login/index.html'
 token_uri = 'https://api.climate.com/api/oauth/token'
 api_uri = 'https://platform.climate.com'
 
+
 def login_uri(client_id, redirect_uri):
-    """URI for 'Log in with Climate' redirect"""
+    """
+    URI for 'Log In with FieldView' link. The redirect_uri is a uri on your system (this app) that will handle the
+    authorization once the user has authenticated with FieldView.
+    """
     params = {
-        'scope':         'openid+platform+partnerapis',
-        'page':          'oidcauthn',
-        'mobile':        'true',
+        'scope': 'openid+platform+partnerapis',
+        'page': 'oidcauthn',
+        'mobile': 'true',
         'response_type': 'code',
-        'client_id':     client_id,
-        'redirect_uri':  redirect_uri
+        'client_id': client_id,
+        'redirect_uri': redirect_uri
     }
     return '{}?{}'.format(base_login_uri, urlencode(params))
 
-def authenticate(login_code, client_id, client_secret, redirect_uri):
-    """Authenticate with Climate"""
-    return oauth2.request(token_uri,
-                          code=login_code,
-                          client_id=client_id,
-                          client_secret=client_secret,
-                          redirect=redirect_uri)
+
+def authorization_header(client_id, client_secret):
+    """
+    Builds the authorization header unique to your company or application.
+    :param client_id: Provided by Climate.
+    :param client_secret: Provided by Climate.
+    :return: Basic authorization header.
+    """
+    pair = '{}:{}'.format(client_id, client_secret)
+    encoded = b64encode(pair.encode('ascii')).decode('ascii')
+    return 'Basic {}'.format(encoded)
+
+
+def authorize(login_code, client_id, client_secret, redirect_uri):
+    """
+    Exchanges the login code provided on the redirect request for an access_token and refresh_token. Also gets user
+    data.
+    :param login_code: Authorization code returned from Log In with FieldView on redirect uri.
+    :param client_id: Provided by Climate.
+    :param client_secret: Provided by Climate.
+    :param redirect_uri: Uri to your redirect page. Needs to be the same as the redirect uri provided in the initial
+           Log In with FieldView request.
+    :return: Object containing user data, access_token and refresh_token.
+    """
+    headers = {
+        'authorization': authorization_header(client_id, client_secret),
+        'content-type': 'application/x-www-form-urlencoded',
+        'accept': 'application/json'
+    }
+    data = {
+        'grant_type': 'authorization_code',
+        'redirect_uri': redirect_uri,
+        'code': login_code
+    }
+    res = requests.post(token_uri, headers=headers, data=urlencode(data))
+    if res.status_code == 200:
+        return res.json()
+
+
+def reauthorize(refresh_token, client_id, client_secret):
+    """
+    Access_tokens expire after 30 days. At any point before the end of that period you may request a new access_token
+    (and refresh_token) by submitting a POST request to the /api/oauth/token end-point. Note that the data submitted
+    is slightly different than on initial authorization.
+    :param refresh_token: refresh_token supplied on initial (or subsequent refresh) call.
+    :param client_id: Provided by Climate.
+    :param client_secret: Provided by Climate.
+    :return: Object containing user data, access_token and refresh_token.
+    """
+    headers = {
+        'authorization': authorization_header(client_id, client_secret),
+        'content-type': 'application/x-www-form-urlencoded',
+        'accept': 'application/json'
+    }
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token
+    }
+    res = requests.post(token_uri, headers=headers, data=urlencode(data))
+    if res.status_code == 200:
+        return res.json()
+
 
 def bearer_token(token):
+    """
+    Returns content of authorization header to be provided on all non-auth API calls.
+    :param token: access_token returned from authorization call.
+    :return: Formatted header.
+    """
     return 'Bearer {}'.format(token)
 
+
 def get_fields(token, api_key, next_token=None):
-    """Retrieve a user's field list from Climate"""
+    """
+    Retrieve a user's field list from Climate. Note that fields (like most data) is paginated to support very large
+    data sets. If the status code returned is 206 (partial content), then there is more data to get. The x-next-token
+    header provides a "marker" that can be used on another request to get the next page of data. Continue fetching
+    data until the status is 200. Note that x-next-token is based on date modified, so storing x-next-token can used
+    as a method to fetch updates over longer periods of time (though also note that this will not result in fetching
+    deleted objects since they no longer appear in lists regardless of their modified date).
+    :param token: access_token
+    :param api_key: Provided by Climate.
+    :param next_token: Pagination token from previous request, or None.
+    :return: A (possibly empty) list of fields.
+    """
     uri = '{}/v4/fields'.format(api_uri)
     headers = {
         'authorization': bearer_token(token),
-        'accept':        json_content_type,
-        'x-api-key':     api_key,
-        'x-next-token':  next_token
+        'accept': json_content_type,
+        'x-api-key': api_key,
+        'x-next-token': next_token
     }
 
     res = requests.get(uri, headers=headers)
@@ -67,13 +143,21 @@ def get_fields(token, api_key, next_token=None):
     else:
         return []
 
+
 def get_boundary(boundary_id, token, api_key):
-    """Retrieve field boundary from Climate"""
+    """
+    Retrieve field boundary from Climate. Note that boundary objects are immutable, so whenever a field's boundary is
+    updated the boundaryId property of the field will change and you will need to fetch the updated boundary.
+    :param boundary_id: UUID of field boundary to retrieve.
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :return: geojson object representing the boundary of the field.
+    """
     uri = '{}/v4/boundaries/{}'.format(api_uri, boundary_id)
     headers = {
         'authorization': bearer_token(token),
-        'accept':        json_content_type,
-        'x-api-key':     api_key
+        'accept': json_content_type,
+        'x-api-key': api_key
     }
 
     res = requests.get(uri, headers=headers)
@@ -82,6 +166,7 @@ def get_boundary(boundary_id, token, api_key):
         return res.json()
     else:
         return None
+
 
 def upload(f, content_type, token, api_key):
     """Upload a file with the given content type to Climate
@@ -93,21 +178,21 @@ def upload(f, content_type, token, api_key):
     uri = '{}/v4/uploads'.format(api_uri)
     headers = {
         'authorization': bearer_token(token),
-        'x-api-key':     api_key
+        'x-api-key': api_key
     }
     md5 = file.md5(f)
     length = file.length(f)
     data = {
-        'md5':          md5,
-        'length':       length,
-        'content-type': content_type
+        'md5': md5,
+        'length': length,
+        'contentType': content_type
     }
 
     # initiate upload
     res = requests.post(uri, headers=headers, json=data)
 
     if res.status_code == 201:
-        upload_id = res.text[1:-1] # extract from json string
+        upload_id = res.text[1:-1]
         put_uri = '{}/{}'.format(uri, upload_id)
 
         # for this example, size is assumed to be small enough for a
