@@ -22,6 +22,8 @@ Copyright © 2017 The Climate Corporation
 
 import json
 import os
+import logging
+import sys
 
 from flask import Flask, request, redirect, url_for, send_from_directory
 import climate
@@ -37,6 +39,12 @@ api_key = os.environ['CLIMATE_API_KEY']  # X-Api-Key
 # Partner app server
 
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+app.logger.addHandler(ch)
 
 # User state - only one user at a time. In your application this would be handled by your session management and backing
 # storage.
@@ -131,7 +139,8 @@ def login_redirect():
         resp = climate.authorize(code,
                                  client_id,
                                  client_secret,
-                                 redirect_uri())
+                                 redirect_uri(),
+                                 app.logger)
         if resp:
             # Store tokens and user in state for subsequent requests.
             access_token = resp['access_token']
@@ -140,7 +149,7 @@ def login_redirect():
 
             # Fetch fields and store in state just for example purposes. You might well do this at the time of need,
             # or not at all depending on your app.
-            fields = climate.get_fields(access_token, api_key)
+            fields = climate.get_fields(access_token, api_key, app.logger)
             set_state(fields=fields)
 
     return redirect(url_for('home'))
@@ -155,7 +164,8 @@ def refresh_token():
     """
     resp = climate.reauthorize(state('refresh_token'),
                                client_id,
-                               client_secret)
+                               client_secret,
+                               app.logger)
     if resp:
         # Store tokens and user in state for subsequent requests.
         access_token = resp['access_token']
@@ -186,7 +196,8 @@ def field(field_id):
 
     boundary = climate.get_boundary(field['boundaryId'],
                                     state('access_token'),
-                                    api_key)
+                                    api_key,
+                                    app.logger)
 
     return """
            <h1>Partner API Demo Site</h1>
@@ -206,12 +217,12 @@ def upload_form():
     :return:
     """
     if request.method == 'POST':
-        if 'file' not in request.files or request.files['file'].stream is not None:
+        if 'file' not in request.files or request.files['file'].stream is None:
             return redirect(url_for('upload_form'))
 
         f = request.files['file']
         content_type = request.form['file_content_type']
-        success = climate.upload(f, content_type, state('access_token'), api_key)
+        success = climate.upload(f, content_type, state('access_token'), api_key, app.logger)
 
         return """
                <h1>Partner API Demo Site</h1>
