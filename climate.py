@@ -16,6 +16,7 @@ import requests
 import file
 from base64 import b64encode
 from urllib.parse import urlencode
+from curlify import to_curl
 
 json_content_type = 'application/json'
 binary_content_type = 'application/octet-stream'
@@ -53,7 +54,7 @@ def authorization_header(client_id, client_secret):
     return 'Basic {}'.format(encoded)
 
 
-def authorize(login_code, client_id, client_secret, redirect_uri):
+def authorize(login_code, client_id, client_secret, redirect_uri, logger):
     """
     Exchanges the login code provided on the redirect request for an access_token and refresh_token. Also gets user
     data.
@@ -75,11 +76,15 @@ def authorize(login_code, client_id, client_secret, redirect_uri):
         'code': login_code
     }
     res = requests.post(token_uri, headers=headers, data=urlencode(data))
+    logger.info(to_curl(res.request))
     if res.status_code == 200:
         return res.json()
+    else:
+        logger.error("Auth failed: %s" % res.status_code)
+        logger.error("Auth failed: %s" % res.json())
 
 
-def reauthorize(refresh_token, client_id, client_secret):
+def reauthorize(refresh_token, client_id, client_secret, logger):
     """
     Access_tokens expire after 30 days. At any point before the end of that period you may request a new access_token
     (and refresh_token) by submitting a POST request to the /api/oauth/token end-point. Note that the data submitted
@@ -99,6 +104,7 @@ def reauthorize(refresh_token, client_id, client_secret):
         'refresh_token': refresh_token
     }
     res = requests.post(token_uri, headers=headers, data=urlencode(data))
+    logger.info(to_curl(res.request))
     if res.status_code == 200:
         return res.json()
 
@@ -112,7 +118,7 @@ def bearer_token(token):
     return 'Bearer {}'.format(token)
 
 
-def get_fields(token, api_key, next_token=None):
+def get_fields(token, api_key, logger, next_token=None):
     """
     Retrieve a user's field list from Climate. Note that fields (like most data) is paginated to support very large
     data sets. If the status code returned is 206 (partial content), then there is more data to get. The x-next-token
@@ -134,17 +140,18 @@ def get_fields(token, api_key, next_token=None):
     }
 
     res = requests.get(uri, headers=headers)
+    logger.info(to_curl(res.request))
 
     if res.status_code == 200:
         return res.json()['results']
     if res.status_code == 206:
         next_token = res.headers['x-next-token']
-        return res.json()['results'] + get_fields(token, api_key, next_token)
+        return res.json()['results'] + get_fields(token, api_key, logger, next_token)
     else:
         return []
 
 
-def get_boundary(boundary_id, token, api_key):
+def get_boundary(boundary_id, token, api_key, logger):
     """
     Retrieve field boundary from Climate. Note that boundary objects are immutable, so whenever a field's boundary is
     updated the boundaryId property of the field will change and you will need to fetch the updated boundary.
@@ -161,6 +168,7 @@ def get_boundary(boundary_id, token, api_key):
     }
 
     res = requests.get(uri, headers=headers)
+    logger.info(to_curl(res.request))
 
     if res.status_code == 200:
         return res.json()
@@ -168,13 +176,15 @@ def get_boundary(boundary_id, token, api_key):
         return None
 
 
-def upload(f, content_type, token, api_key):
+def upload(f, content_type, token, api_key, logger):
     """Upload a file with the given content type to Climate
 
     This example supports files up to 5 MiB (5,242,880 bytes).
 
     Returns True if the upload is successful, False otherwise.
     """
+    CHUNK_SIZE = 5 * 1024 * 1024
+
     uri = '{}/v4/uploads'.format(api_uri)
     headers = {
         'authorization': bearer_token(token),
@@ -190,9 +200,11 @@ def upload(f, content_type, token, api_key):
 
     # initiate upload
     res = requests.post(uri, headers=headers, json=data)
+    logger.info(to_curl(res.request))
 
     if res.status_code == 201:
-        upload_id = res.text[1:-1]
+        upload_id = res.json()
+        logger.info("Upload Id: %s" % upload_id)
         put_uri = '{}/{}'.format(uri, upload_id)
 
         # for this example, size is assumed to be small enough for a
@@ -203,8 +215,15 @@ def upload(f, content_type, token, api_key):
         f.seek(0)
 
         # send image
-        res = requests.put(put_uri, headers=headers, data=f)
+        for position in range(0, length, CHUNK_SIZE):
+            buf = f.read(CHUNK_SIZE)
+            headers['content-range'] = 'bytes {}-{}/{}'.format(position, position + len(buf) - 1, length)
+            try:
+                res = requests.put(put_uri, headers=headers, data=buf)
+                logger.info(headers)
+            except Exception as e:
+                logger.error("Exception: %s" % e)
 
         if res.status_code == 204:
-            return True
+            return upload_id
     return False
