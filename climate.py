@@ -94,7 +94,7 @@ def reauthorize(refresh_token, client_id, client_secret):
     Once this end-point is called, the refresh token that is passed to this call is immediately set to expired one 
     hour from "now" and the newly issues refresh token will expire 30 days from "now". Make sure to store the new
     refresh token so you can use it in the future to get a new auth tokens as needed. If you lose the refresh token
-    there is not effective way to retrieve a new refresh token without having the user log in again.
+    there is no effective way to retrieve a new refresh token without having the user log in again.
     :param refresh_token: refresh_token supplied by initial (or subsequent refresh) call.
     :param client_id: Provided by Climate.
     :param client_secret: Provided by Climate.
