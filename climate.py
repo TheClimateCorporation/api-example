@@ -88,10 +88,14 @@ def authorize(login_code, client_id, client_secret, redirect_uri):
 
 def reauthorize(refresh_token, client_id, client_secret):
     """
-    Access_tokens expire after 30 days. At any point before the end of that period you may request a new access_token
+    Access_tokens expire after 4 hours. At any point before the end of that period you may request a new access_token
     (and refresh_token) by submitting a POST request to the /api/oauth/token end-point. Note that the data submitted
-    is slightly different than on initial authorization.
-    :param refresh_token: refresh_token supplied on initial (or subsequent refresh) call.
+    is slightly different than on initial authorization. Refresh tokens are good for 30 days from their date of issue.
+    Once this end-point is called, the refresh token that is passed to this call is immediately set to expired one 
+    hour from "now" and the newly issues refresh token will expire 30 days from "now". Make sure to store the new
+    refresh token so you can use it in the future to get a new auth tokens as needed. If you lose the refresh token
+    there is not effective way to retrieve a new refresh token without having the user log in again.
+    :param refresh_token: refresh_token supplied by initial (or subsequent refresh) call.
     :param client_id: Provided by Climate.
     :param client_secret: Provided by Climate.
     :return: Object containing user data, access_token and refresh_token.
