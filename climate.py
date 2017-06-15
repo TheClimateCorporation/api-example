@@ -16,6 +16,9 @@ import requests
 import file
 from base64 import b64encode
 from urllib.parse import urlencode
+from curlify import to_curl
+from logger import Logger
+
 
 json_content_type = 'application/json'
 binary_content_type = 'application/octet-stream'
@@ -75,8 +78,12 @@ def authorize(login_code, client_id, client_secret, redirect_uri):
         'code': login_code
     }
     res = requests.post(token_uri, headers=headers, data=urlencode(data))
+    Logger().info(to_curl(res.request))
     if res.status_code == 200:
         return res.json()
+    else:
+        Logger().error("Auth failed: %s" % res.status_code)
+        Logger().error("Auth failed: %s" % res.json())
 
 
 def reauthorize(refresh_token, client_id, client_secret):
@@ -99,6 +106,7 @@ def reauthorize(refresh_token, client_id, client_secret):
         'refresh_token': refresh_token
     }
     res = requests.post(token_uri, headers=headers, data=urlencode(data))
+    Logger().info(to_curl(res.request))
     if res.status_code == 200:
         return res.json()
 
@@ -134,6 +142,7 @@ def get_fields(token, api_key, next_token=None):
     }
 
     res = requests.get(uri, headers=headers)
+    Logger().info(to_curl(res.request))
 
     if res.status_code == 200:
         return res.json()['results']
@@ -161,6 +170,7 @@ def get_boundary(boundary_id, token, api_key):
     }
 
     res = requests.get(uri, headers=headers)
+    Logger().info(to_curl(res.request))
 
     if res.status_code == 200:
         return res.json()
@@ -173,8 +183,10 @@ def upload(f, content_type, token, api_key):
 
     This example supports files up to 5 MiB (5,242,880 bytes).
 
-    Returns True if the upload is successful, False otherwise.
+    Returns The upload id if the upload is successful, False otherwise.
     """
+    CHUNK_SIZE = 5 * 1024 * 1024
+
     uri = '{}/v4/uploads'.format(api_uri)
     headers = {
         'authorization': bearer_token(token),
@@ -190,9 +202,11 @@ def upload(f, content_type, token, api_key):
 
     # initiate upload
     res = requests.post(uri, headers=headers, json=data)
+    Logger().info(to_curl(res.request))
 
     if res.status_code == 201:
-        upload_id = res.text[1:-1]
+        upload_id = res.json()
+        Logger().info("Upload Id: %s" % upload_id)
         put_uri = '{}/{}'.format(uri, upload_id)
 
         # for this example, size is assumed to be small enough for a
@@ -203,8 +217,15 @@ def upload(f, content_type, token, api_key):
         f.seek(0)
 
         # send image
-        res = requests.put(put_uri, headers=headers, data=f)
+        for position in range(0, length, CHUNK_SIZE):
+            buf = f.read(CHUNK_SIZE)
+            headers['content-range'] = 'bytes {}-{}/{}'.format(position, position + len(buf) - 1, length)
+            try:
+                res = requests.put(put_uri, headers=headers, data=buf)
+                Logger().info(headers)
+            except Exception as e:
+                Logger().error("Exception: %s" % e)
 
         if res.status_code == 204:
-            return True
+            return upload_id
     return False

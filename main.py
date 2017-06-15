@@ -22,6 +22,7 @@ Copyright © 2017 The Climate Corporation
 
 import json
 import os
+from logger import Logger
 
 from flask import Flask, request, redirect, url_for, send_from_directory
 import climate
@@ -37,6 +38,7 @@ api_key = os.environ['CLIMATE_API_KEY']  # X-Api-Key
 # Partner app server
 
 app = Flask(__name__)
+logger = Logger(app.logger)
 
 # User state - only one user at a time. In your application this would be handled by your session management and backing
 # storage.
@@ -206,7 +208,7 @@ def upload_form():
     :return:
     """
     if request.method == 'POST':
-        if 'file' not in request.files or request.files['file'].stream is not None:
+        if 'file' not in request.files or request.files['file'].stream is None:
             return redirect(url_for('upload_form'))
 
         f = request.files['file']
