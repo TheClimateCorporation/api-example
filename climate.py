@@ -233,3 +233,32 @@ def upload(f, content_type, token, api_key):
         if res.status_code == 204:
             return upload_id
     return False
+
+def get_upload_status(upload_id, token, api_key):
+    """
+    Retrieve the status of a previously uploaded file. Status values may be (as of the time of this comment):
+    INVALID - Image has failed validity check.
+    UPLOADING - Uploading the image has started, chunks are still coming in.
+    PENDING - File has been received by Climate and is being processed.
+    INBOX - The image is awaiting user acceptance in their Data Inbox.
+    IMPORTING - The user has accepted the upload in their Data Inbox and the final processing is underway.
+    SUCCESS - User has accepted the upload through their Data Inbox and the image is now viewable.
+    :param upload_id: uuid of upload
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :return: status json object containing upload id and status.
+    """
+    uri = '{}/v4/uploads/{}/status'.format(api_uri, upload_id)
+    headers = {
+        'authorization': bearer_token(token),
+        'accept': json_content_type,
+        'x-api-key': api_key
+    }
+
+    res = requests.get(uri, headers=headers)
+    Logger().info(to_curl(res.request))
+
+    if res.status_code == 200:
+        return res.json()
+    else:
+        return None

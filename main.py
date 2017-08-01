@@ -213,14 +213,14 @@ def upload_form():
 
         f = request.files['file']
         content_type = request.form['file_content_type']
-        success = climate.upload(f, content_type, state('access_token'), api_key)
+        upload_id = climate.upload(f, content_type, state('access_token'), api_key)
 
         return """
                <h1>Partner API Demo Site</h1>
                <h2>Upload data</h2>
-               <p>File uploaded: {success}</p>
+               <p>File uploaded: {upload_id} <a href='{status_url}'>Get Status</a></p>
                <p><a href="{home}">Return home</a></p>
-               """.format(success=success, home=url_for('home'))
+               """.format(upload_id=upload_id, status_url=url_for('update_status', upload_id=upload_id), home=url_for('home'))
 
     return """
            <h1>Partner API Demo Site</h1>
@@ -232,6 +232,26 @@ def upload_form():
            </form>
            <p><a href="{home}">Return home</a></p>
            """.format(home=url_for('home'))
+
+@app.route('/upload/<upload_id>', methods=['GET'])
+def update_status(upload_id):
+    """
+    Shows the status of an upload.
+    :param upload_id:
+    :return:
+    """
+    status = climate.get_upload_status(upload_id,
+                                    state('access_token'),
+                                    api_key)
+
+    return """
+           <h1>Partner API Demo Site</h1>
+           <h2>Upload ID: {upload_id}</h2>
+           <p>Status: {status}</p>
+           <p><a href="{home}">Return home</a></p>
+           """.format(upload_id=upload_id,
+                      status=json.dumps(status, indent=4, sort_keys=True),
+                      home=url_for('home'))
 
 
 # Various utilities just to make the demo app work. No Climate API stuff here.
