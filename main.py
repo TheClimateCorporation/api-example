@@ -213,14 +213,14 @@ def upload_form():
 
         f = request.files['file']
         content_type = request.form['file_content_type']
-        success = climate.upload(f, content_type, state('access_token'), api_key)
+        upload_id = climate.upload(f, content_type, state('access_token'), api_key)
 
         return """
                <h1>Partner API Demo Site</h1>
                <h2>Upload data</h2>
-               <p>File uploaded: {success}</p>
+               <p>File uploaded: {upload_id} <a href='{status_url}'>Get Status</a></p>
                <p><a href="{home}">Return home</a></p>
-               """.format(success=success, home=url_for('home'))
+               """.format(upload_id=upload_id, status_url=url_for('update_status', upload_id=upload_id), home=url_for('home'))
 
     return """
            <h1>Partner API Demo Site</h1>
@@ -232,6 +232,29 @@ def upload_form():
            </form>
            <p><a href="{home}">Return home</a></p>
            """.format(home=url_for('home'))
+
+@app.route('/upload/<upload_id>', methods=['GET'])
+def update_status(upload_id):
+    """
+    Shows the status of an upload. Uploads are processed asynchronously so to know if an upload was successful you need
+    to check its status until it is either in the INBOX or SUCCESS state (it worked) or the INVALID state (it failed).
+    This method demonstrates the API call to get the status for a single upload id. There is also a call to get stattus
+    for a list of upload ids.
+    :param upload_id: uuid of upload returned by API.
+    :return:
+    """
+    status = climate.get_upload_status(upload_id,
+                                       state('access_token'),
+                                       api_key)
+
+    return """
+           <h1>Partner API Demo Site</h1>
+           <h2>Upload ID: {upload_id}</h2>
+           <p>Status: {status} <a href="#" onclick="location.reload();">Refresh</a></p>
+           <p><a href="{home}">Return home</a></p>
+           """.format(upload_id=upload_id,
+                      status=status.get('status'),
+                      home=url_for('home'))
 
 
 # Various utilities just to make the demo app work. No Climate API stuff here.
