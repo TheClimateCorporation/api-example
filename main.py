@@ -236,8 +236,11 @@ def upload_form():
 @app.route('/upload/<upload_id>', methods=['GET'])
 def update_status(upload_id):
     """
-    Shows the status of an upload.
-    :param upload_id:
+    Shows the status of an upload. Uploads are processed asynchronously so to know if an upload was successful you need
+    to check its status until it is either in the INBOX or SUCCESS state (it worked) or the INVALID state (it failed).
+    This method demonstrates the API call to get the status for a single upload id. There is also a call to get stattus
+    for a list of upload ids.
+    :param upload_id: uuid of upload returned by API.
     :return:
     """
     status = climate.get_upload_status(upload_id,
