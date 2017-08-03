@@ -241,16 +241,16 @@ def update_status(upload_id):
     :return:
     """
     status = climate.get_upload_status(upload_id,
-                                    state('access_token'),
-                                    api_key)
+                                       state('access_token'),
+                                       api_key)
 
     return """
            <h1>Partner API Demo Site</h1>
            <h2>Upload ID: {upload_id}</h2>
-           <p>Status: {status}</p>
+           <p>Status: {status} <a href="#" onclick="location.reload();">Refresh</a></p>
            <p><a href="{home}">Return home</a></p>
            """.format(upload_id=upload_id,
-                      status=json.dumps(status, indent=4, sort_keys=True),
+                      status=status.get('status'),
                       home=url_for('home'))
 
 

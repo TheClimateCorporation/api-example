@@ -26,11 +26,13 @@ Example apps using Climate's API.
     export CLIMATE_API_SECRET="azbq56fpadhnt8oukoeani2a4w"
     export CLIMATE_API_KEY="partner-fooco-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
     ```
+
 When you're done testing the example, deactivate the virtual environment with:
 
-    ```bash
-    deactivate
-    ```
+```
+bash
+deactivate
+```
 
 ## Running the web example
 
@@ -38,12 +40,13 @@ When you're done testing the example, deactivate the virtual environment with:
     
 2. Start the server:
 
-    ```bash
+    ```
+    bash
     python3 main.py
     ```
 
-4. Open a browser to [localhost:8080/home](http://localhost:8080/home)
-    
+3. Open a browser to [localhost:8080/home](http://localhost:8080/home)
+
 ## License
 
 Copyright © 2017 The Climate Corporation
