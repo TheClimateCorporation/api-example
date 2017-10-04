@@ -21,7 +21,7 @@ Example apps using Climate's API.
 
 3. Set the following environment variables to the values provided by Climate:
 
-    ```
+    ```bash
     export CLIMATE_API_ID="partner-fooco"
     export CLIMATE_API_SECRET="azbq56fpadhnt8oukoeani2a4w"
     export CLIMATE_API_KEY="partner-fooco-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
@@ -29,19 +29,17 @@ Example apps using Climate's API.
 
 When you're done testing the example, deactivate the virtual environment with:
 
-```
-bash
+```bash
 deactivate
 ```
 
 ## Running the web example
 
 1. Follow steps in _Setup_
-    
+
 2. Start the server:
 
-    ```
-    bash
+    ```bash
     python3 main.py
     ```
 
