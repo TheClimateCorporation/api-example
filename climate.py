@@ -36,7 +36,6 @@ def login_uri(client_id, redirect_uri):
     params = {
         'scope': 'openid+platform+partnerapis',
         'page': 'oidcauthn',
-        'mobile': 'true',
         'response_type': 'code',
         'client_id': client_id,
         'redirect_uri': redirect_uri
