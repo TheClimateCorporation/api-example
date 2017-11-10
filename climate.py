@@ -235,10 +235,10 @@ def upload(f, content_type, token, api_key):
 
 def get_upload_status(upload_id, token, api_key):
     """
-    Retrieve the status of a previously uploaded file. See
+    Retrieve the status of an upload. See
     https://dev.fieldview.com/technical-documentation/ for possible status
     values and their meaning.
-    :param upload_id: uuid of upload
+    :param upload_id: id of upload
     :param token: access_token
     :param api_key: Provided by Climate
     :return: status json object containing upload id and status.
