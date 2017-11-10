@@ -90,7 +90,7 @@ def reauthorize(refresh_token, client_id, client_secret):
     Access_tokens expire after 4 hours. At any point before the end of that period you may request a new access_token
     (and refresh_token) by submitting a POST request to the /api/oauth/token end-point. Note that the data submitted
     is slightly different than on initial authorization. Refresh tokens are good for 30 days from their date of issue.
-    Once this end-point is called, the refresh token that is passed to this call is immediately set to expired one 
+    Once this end-point is called, the refresh token that is passed to this call is immediately set to expired one
     hour from "now" and the newly issues refresh token will expire 30 days from "now". Make sure to store the new
     refresh token so you can use it in the future to get a new auth tokens as needed. If you lose the refresh token
     there is no effective way to retrieve a new refresh token without having the user log in again.
@@ -235,13 +235,9 @@ def upload(f, content_type, token, api_key):
 
 def get_upload_status(upload_id, token, api_key):
     """
-    Retrieve the status of a previously uploaded file. Status values may be (as of the time of this comment):
-    INVALID - Image has failed validity check.
-    UPLOADING - Uploading the image has started, chunks are still coming in.
-    PENDING - File has been received by Climate and is being processed.
-    INBOX - The image is awaiting user acceptance in their Data Inbox.
-    IMPORTING - The user has accepted the upload in their Data Inbox and the final processing is underway.
-    SUCCESS - User has accepted the upload through their Data Inbox and the image is now viewable.
+    Retrieve the status of a previously uploaded file. See
+    https://dev.fieldview.com/technical-documentation/ for possible status
+    values and their meaning.
     :param upload_id: uuid of upload
     :param token: access_token
     :param api_key: Provided by Climate
