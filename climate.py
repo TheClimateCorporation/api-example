@@ -28,13 +28,14 @@ token_uri = 'https://api.climate.com/api/oauth/token'
 api_uri = 'https://platform.climate.com'
 
 
-def login_uri(client_id, redirect_uri):
+def login_uri(client_id, scopes, redirect_uri):
     """
-    URI for 'Log In with FieldView' link. The redirect_uri is a uri on your system (this app) that will handle the
+    Builds the URI for 'Log In with FieldView' link.
+    The redirect_uri is a uri on your system (this app) that will handle the
     authorization once the user has authenticated with FieldView.
     """
     params = {
-        'scope': 'openid+platform+partnerapis',
+        'scope': scopes,
         'page': 'oidcauthn',
         'response_type': 'code',
         'client_id': client_id,
