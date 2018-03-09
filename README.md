@@ -29,7 +29,7 @@ export CLIMATE_API_KEY="partner-fooco-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
 export CLIMATE_API_SCOPES="openid fields:read imagery:write"
 ```
 
-Regarding scopes - see [https://dev.fieldview.com]() for more scopes and their
+Regarding scopes - see the [FieldView API technical documentation](https://dev.fieldview.com/technical-documentation/) for more scopes and their
 corresponding endpoints.
 
 4. When you're done running the example, deactivate the virtual environment with:
