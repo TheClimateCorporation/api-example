@@ -30,9 +30,10 @@ import climate
 # Configuration of your Climate partner credentials. This assumes you have placed them in your environment. You may
 # also choose to just hard code them here if you prefer.
 
-client_id = os.environ['CLIMATE_API_ID']  # OAuth2 client ID
-client_secret = os.environ['CLIMATE_API_SECRET']  # OAuth2 client secret
-api_key = os.environ['CLIMATE_API_KEY']  # X-Api-Key
+CLIMATE_API_ID = os.environ['CLIMATE_API_ID']         # OAuth2 client ID
+CLIMATE_API_SECRET = os.environ['CLIMATE_API_SECRET'] # OAuth2 client secret
+CLIMATE_API_SCOPES = os.environ['CLIMATE_API_SCOPES'] # Oauth2 scope list
+CLIMATE_API_KEY = os.environ['CLIMATE_API_KEY']       # X-Api-Key header
 
 
 # Partner app server
@@ -85,7 +86,7 @@ def no_user_homepage():
     required parameters and correct button image.
     :return: None
     """
-    url = climate.login_uri(client_id, redirect_uri())
+    url = climate.login_uri(CLIMATE_API_ID, CLIMATE_API_SCOPES, redirect_uri())
     return """
             <h1>Partner API Demo Site</h1>
             <h2>Welcome to the Climate Partner Demo App.</h2>
@@ -131,8 +132,8 @@ def login_redirect():
     code = request.args['code']
     if code:
         resp = climate.authorize(code,
-                                 client_id,
-                                 client_secret,
+                                 CLIMATE_API_ID,
+                                 CLIMATE_API_SECRET,
                                  redirect_uri())
         if resp:
             # Store tokens and user in state for subsequent requests.
@@ -142,7 +143,7 @@ def login_redirect():
 
             # Fetch fields and store in state just for example purposes. You might well do this at the time of need,
             # or not at all depending on your app.
-            fields = climate.get_fields(access_token, api_key)
+            fields = climate.get_fields(access_token, CLIMATE_API_KEY)
             set_state(fields=fields)
 
     return redirect(url_for('home'))
@@ -156,8 +157,8 @@ def refresh_token():
     :return:
     """
     resp = climate.reauthorize(state('refresh_token'),
-                               client_id,
-                               client_secret)
+                               CLIMATE_API_ID,
+                               CLIMATE_API_SECRET)
     if resp:
         # Store tokens and user in state for subsequent requests.
         access_token = resp['access_token']
@@ -188,7 +189,7 @@ def field(field_id):
 
     boundary = climate.get_boundary(field['boundaryId'],
                                     state('access_token'),
-                                    api_key)
+                                    CLIMATE_API_KEY)
 
     return """
            <h1>Partner API Demo Site</h1>
@@ -213,7 +214,7 @@ def upload_form():
 
         f = request.files['file']
         content_type = request.form['file_content_type']
-        upload_id = climate.upload(f, content_type, state('access_token'), api_key)
+        upload_id = climate.upload(f, content_type, state('access_token'), CLIMATE_API_KEY)
 
         return """
                <h1>Partner API Demo Site</h1>
@@ -245,7 +246,7 @@ def update_status(upload_id):
     """
     status = climate.get_upload_status(upload_id,
                                        state('access_token'),
-                                       api_key)
+                                       CLIMATE_API_KEY)
 
     return """
            <h1>Partner API Demo Site</h1>
