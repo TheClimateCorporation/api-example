@@ -1,6 +1,6 @@
 # API Example
 
-Example app using Climate's [FieldView API](https://dev.fieldview.com).
+Example app exercising some of Climate's [FieldView API](https://dev.fieldview.com).
 
 ## Setup
 
@@ -23,14 +23,14 @@ pip install -r requirements.txt
 to the values provided to you by Climate:
 
 ```bash
-export CLIMATE_API_ID="partner-fooco"
+export CLIMATE_API_ID="my-api-id"
 export CLIMATE_API_SECRET="azbq56fpadhnt8oukoeani2a4w"
-export CLIMATE_API_KEY="partner-fooco-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
+export CLIMATE_API_KEY="my-api-id-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
 export CLIMATE_API_SCOPES="openid fields:read imagery:write"
 ```
 
 Regarding scopes - see the [FieldView API technical documentation](https://dev.fieldview.com/technical-documentation/) for more scopes and their
-corresponding endpoints.
+corresponding endpoints (click the `Authorize` button in the swagger docs).
 
 4. When you're done running the example, deactivate the virtual environment with:
 
@@ -52,4 +52,4 @@ python3 main.py
 
 ## License
 
-Copyright © 2017 The Climate Corporation
+Copyright © 2018 The Climate Corporation
