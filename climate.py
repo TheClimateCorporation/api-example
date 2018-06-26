@@ -8,7 +8,7 @@ Climate API demo code. This module shows how to:
 - Upload files
 
 License:
-Copyright © 2017 The Climate Corporation
+Copyright © 2018 The Climate Corporation
 """
 
 import requests

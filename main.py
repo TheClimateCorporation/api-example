@@ -17,7 +17,7 @@ happens in climate.py.
 Note: For this example, only one "user" can be logged into the example app at a time.
 
 License:
-Copyright © 2017 The Climate Corporation
+Copyright © 2018 The Climate Corporation
 """
 
 import json

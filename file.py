@@ -2,7 +2,7 @@
 File utilities
 
 License:
-Copyright © 2017 The Climate Corporation
+Copyright © 2018 The Climate Corporation
 """
 
 import hashlib
