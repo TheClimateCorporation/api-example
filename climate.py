@@ -270,7 +270,7 @@ def get_scouting_observations(token, api_key, limit=100, next_token=None, occurr
     :param next-token: Opaque string which allows for fetching the next batch of results.
     :param limit: Max number of results to return per batch. Must be between 1 and 100 inclusive.
     :param occurred_after: Optional start time by which to filter layer results.
-    :param occurre_befor: Optional end time by which to filter layer results.
+    :param occurred_before: Optional end time by which to filter layer results.
     :return: status json object containing scouting observation list and status.
     """
     uri = '{}/v4/layers/scoutingObservations'.format(api_uri)
