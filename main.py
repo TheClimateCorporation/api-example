@@ -302,25 +302,28 @@ def scouting_observation(scouting_observation_id):
     return  """
             <h1>Partner API Demo Site</h1>
             <h2>Scouting Observation ID: {scouting_observation_id}</h2>
-            <p>{json}</p>
+            <p><pre>{json}</pre></p>
             <p><a href='{observations}'>Return to Observations list</a></p>
-            """.format(scouting_observation_id=scouting_observation_id,json=json.dumps(observation), observations=url_for('scouting_observations'))
+            """.format(scouting_observation_id=scouting_observation_id,json=json.dumps(observation, indent=4, sort_keys=True),
+             observations=url_for('scouting_observations'))
 
 
 
 @app.route('/scouting-observations', methods=['GET'])
 def scouting_observations():
     observations = climate.get_scouting_observations(state('access_token'), CLIMATE_API_KEY, 100, None)
-    html = "<h1>Partner API Demo Site</h1>"
+    body = ""
     if observations:
         scouting_observations = render_ul(render_scouting_observation_link(f) for f in observations)
-        html +="<p>Your Climate Scouting Observations:{scouting_observations}</p>".format(scouting_observations=scouting_observations)
+        body = "<p>Your Climate Scouting Observations:{scouting_observations}</p>".format(scouting_observations=scouting_observations)
     else:
-        html+= "<p>No Scouting Observations found!"
+        body = "<p>No Scouting Observations found!"
 
-    html+= "<p><a href='{home}'>Return home</a></p>".format(home=url_for('home'))
-
-    return html
+    return """
+        <h1>Partner API Demo Site</h1>
+        <p>{body}</p>
+        <p><a href='{home}'>Return home</a></p>
+        """.format(body=body,home=url_for('home'))
 
 # start app
 

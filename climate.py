@@ -259,7 +259,7 @@ def get_upload_status(upload_id, token, api_key):
     else:
         return None
 
-def get_scouting_observations(token, api_key, x_limit=100, x_next_token=None, occurredAfter=None, occurredBefore=None):
+def get_scouting_observations(token, api_key, limit=100, next_token=None, occurred_after=None, occurred_before=None):
     """
     Retrieve a list of scouting observations created or updated by the user 
     identified by the Authorization header. 
@@ -267,10 +267,10 @@ def get_scouting_observations(token, api_key, x_limit=100, x_next_token=None, oc
     values and their meaning.
     :param token: access_token
     :param api_key: Provided by Climate
-    :param x-next-token: Opaque string which allows for fetching the next batch of results.
-    :param x-limit: Max number of results to return per batch. Must be between 1 and 100 inclusive.
-    :param occurredAfter: Optional start time by which to filter layer results.
-    :param occurredBefor: Optional end time by which to filter layer results.
+    :param next-token: Opaque string which allows for fetching the next batch of results.
+    :param limit: Max number of results to return per batch. Must be between 1 and 100 inclusive.
+    :param occurred_after: Optional start time by which to filter layer results.
+    :param occurre_befor: Optional end time by which to filter layer results.
     :return: status json object containing scouting observation list and status.
     """
     uri = '{}/v4/layers/scoutingObservations'.format(api_uri)
@@ -278,20 +278,22 @@ def get_scouting_observations(token, api_key, x_limit=100, x_next_token=None, oc
         'authorization': bearer_token(token),
         'accept': json_content_type,
         'x-api-key': api_key,
-        'X-Limit': str(x_limit),
-        'X-Next-Token': x_next_token,
-        'occurredAfter': occurredAfter,
-        'occurredBefore': occurredBefore 
+        'x-limit': str(limit),
+        'x-next-token': next_token
+    }
+    params = {
+        'occurredAfter': occurred_after,
+        'occurredBefore': occurred_before 
     }
 
-    res = requests.get(uri, headers=headers)
+    res = requests.get(uri, headers=headers, params=params)
     Logger().info(to_curl(res.request))
 
     if res.status_code == 200:
         return res.json()['results']
     if res.status_code == 206:
         next_token = res.headers['x-next-token']
-        return res.json()['results'] + get_scouting_observations(token, api_key, x_limit, next_token)
+        return res.json()['results'] + get_scouting_observations(token, api_key, limit, next_token)
     else:
         return []
 
@@ -302,7 +304,7 @@ def get_scouting_observation(token, api_key, scouting_observation_id):
     values and their meaning.
     :param token: access_token
     :param api_key: Provided by Climate
-    :param scoutingObservationId: Unique identifier of the Scouting Observation.
+    :param scouting_observation_id: Unique identifier of the Scouting Observation.
     
     """
     uri = '{}/v4/layers/scoutingObservations/{}'.format(api_uri, scouting_observation_id)
