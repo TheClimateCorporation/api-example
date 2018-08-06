@@ -120,8 +120,7 @@ def user_homepage():
                       upload=url_for('upload_form'),
                       logout=url_for('logout_redirect'),
                       refresh=url_for('refresh_token'),
-                      scouting_observations=url_for('scouting_observations'),
-                      )
+                      scouting_observations=url_for('scouting_observations'))
 
 
 @app.route('/login-redirect')
@@ -283,11 +282,13 @@ def render_field_link(field):
         name=field['name'],
         id=field_id)
 
+
 def render_scouting_observation_link(scouting_observation):
     id = scouting_observation['id']
     return '<a href="{link}">{id}</a>'.format(
         link=url_for('scouting_observation', scouting_observation_id=id),
         id=id)
+
 
 def redirect_uri():
     """
@@ -295,37 +296,35 @@ def redirect_uri():
     """
     return url_for('login_redirect', _external=True)
 
+
 @app.route('/scouting-observation/<scouting_observation_id>', methods=['GET'])
 def scouting_observation(scouting_observation_id):
     observation = climate.get_scouting_observation(state('access_token'), CLIMATE_API_KEY, scouting_observation_id)
-   
     return  """
-            <h1>Partner API Demo Site</h1>
-            <h2>Scouting Observation ID: {scouting_observation_id}</h2>
-            <p><pre>{json}</pre></p>
-            <p><a href='{observations}'>Return to Observations list</a></p>
-            """.format(scouting_observation_id=scouting_observation_id,json=json.dumps(observation, indent=4, sort_keys=True),
-             observations=url_for('scouting_observations'))
-
+        <h1>Partner API Demo Site</h1>
+        <h2>Scouting Observation ID: {scouting_observation_id}</h2>
+        <p><pre>{json}</pre></p>
+        <p><a href='{observations}'>Return to Observations list</a></p>
+        """.format(scouting_observation_id=scouting_observation_id,
+                json=json.dumps(observation, indent=4, sort_keys=True),
+                observations=url_for('scouting_observations'))
 
 
 @app.route('/scouting-observations', methods=['GET'])
 def scouting_observations():
-    observations = climate.get_scouting_observations(state('access_token'), CLIMATE_API_KEY, 100, None)
-    body = ""
+    observations = climate.get_scouting_observations(state('access_token'), CLIMATE_API_KEY, 100)
+    body = "<p>No Scouting Observations found!</p>"
     if observations:
-        scouting_observations = render_ul(render_scouting_observation_link(f) for f in observations)
+        scouting_observations = render_ul(render_scouting_observation_link(o) for o in observations)
         body = "<p>Your Climate Scouting Observations:{scouting_observations}</p>".format(scouting_observations=scouting_observations)
-    else:
-        body = "<p>No Scouting Observations found!"
 
-    return """
-        <h1>Partner API Demo Site</h1>
-        <p>{body}</p>
-        <p><a href='{home}'>Return home</a></p>
-        """.format(body=body,home=url_for('home'))
-
+    return  """
+            <h1>Partner API Demo Site</h1>
+            {body}
+            <p><a href='{home}'>Return home</a></p>
+            """.format(body=body, home=url_for('home'))
 # start app
+
 
 if __name__ == '__main__':
     clear_state()
