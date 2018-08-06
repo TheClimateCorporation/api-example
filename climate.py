@@ -258,3 +258,71 @@ def get_upload_status(upload_id, token, api_key):
         return res.json()
     else:
         return None
+
+def get_scouting_observations(token, api_key, limit=100, next_token=None, occurred_after=None, occurred_before=None):
+    """
+    Retrieve a list of scouting observations created or updated by the user 
+    identified by the Authorization header. 
+    https://dev.fieldview.com/technical-documentation/ for possible status
+    values and their meaning.
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param next-token: Opaque string which allows for fetching the next batch of results.
+    :param limit: Max number of results to return per batch. Must be between 1 and 100 inclusive.
+    :param occurred_after: Optional start time by which to filter layer results.
+    :param occurred_before: Optional end time by which to filter layer results.
+    :return: status json object containing scouting observation list and status.
+    """
+    uri = '{}/v4/layers/scoutingObservations'.format(api_uri)
+    headers = {
+        'authorization': bearer_token(token),
+        'accept': json_content_type,
+        'x-api-key': api_key,
+        'x-limit': str(limit),
+        'x-next-token': next_token
+    }
+    params = {
+        'occurredAfter': occurred_after,
+        'occurredBefore': occurred_before 
+    }
+
+    res = requests.get(uri, headers=headers, params=params)
+    Logger().info(to_curl(res.request))
+
+    if res.status_code == 200:
+        return res.json()['results']
+    if res.status_code == 206:
+        next_token = res.headers['x-next-token']
+        return res.json()['results'] + get_scouting_observations(token, 
+                                                                api_key, 
+                                                                limit, 
+                                                                next_token, 
+                                                                occurred_after,
+                                                                occurred_before)
+    else:
+        return []
+
+def get_scouting_observation(token, api_key, scouting_observation_id):
+    """
+    Retrieve an individual scouting observation by id. Ids are retrieved via the /layers/scoutingObservations route.
+    https://dev.fieldview.com/technical-documentation/ for possible status
+    values and their meaning.
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param scouting_observation_id: Unique identifier of the Scouting Observation.
+    
+    """
+    uri = '{}/v4/layers/scoutingObservations/{}'.format(api_uri, scouting_observation_id)
+    headers = {
+        'authorization': bearer_token(token),
+        'accept': json_content_type,
+        'x-api-key': api_key
+    }
+
+    res = requests.get(uri, headers=headers)
+    Logger().info(to_curl(res.request))
+    
+    if res.status_code == 200:
+        return res.json()
+    else:
+        return None
