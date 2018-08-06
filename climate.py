@@ -297,8 +297,8 @@ def get_scouting_observations(token, api_key, limit=100, next_token=None, occurr
                                                                 api_key, 
                                                                 limit, 
                                                                 next_token, 
-                                                                occurred_after=occurred_after,
-                                                                occurred_before=occurred_before)
+                                                                occurred_after,
+                                                                occurred_before)
     else:
         return []
 
