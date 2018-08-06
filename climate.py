@@ -293,7 +293,12 @@ def get_scouting_observations(token, api_key, limit=100, next_token=None, occurr
         return res.json()['results']
     if res.status_code == 206:
         next_token = res.headers['x-next-token']
-        return res.json()['results'] + get_scouting_observations(token, api_key, limit, next_token)
+        return res.json()['results'] + get_scouting_observations(token, 
+                                                                api_key, 
+                                                                limit, 
+                                                                next_token, 
+                                                                occurred_after=occurred_after,
+                                                                occurred_before=occurred_before)
     else:
         return []
 
