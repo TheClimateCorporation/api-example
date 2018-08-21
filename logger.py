@@ -4,14 +4,16 @@ import sys
 
 class Logger:
     """
-    Simple singleton class to encapsulate logging to the Flask app object so we can have unified logging.
+    Simple singleton class to encapsulate logging to the Flask app object so
+    we can have unified logging.
     """
     instance = None
 
-    def __new__(self, logger=None):
+    def __new__(cls, logger=None):
         if not Logger.instance:
             if not logger:
-                raise ValueError("No logger specified on creation of Logger singleton.")
+                raise ValueError("No logger specified on creation of Logger\
+                 singleton.")
             Logger.instance = logger
             logger.setLevel(logging.INFO)
             handler = logging.StreamHandler(sys.stdout)
