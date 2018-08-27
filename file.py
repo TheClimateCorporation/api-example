@@ -8,11 +8,13 @@ Copyright © 2018 The Climate Corporation
 import hashlib
 import os
 
+
 def length(f):
     """Get the length of a file"""
     f.seek(0, os.SEEK_END)
     length = f.tell()
     return length
+
 
 def md5(f):
     """Get the md5 of a file's contents"""

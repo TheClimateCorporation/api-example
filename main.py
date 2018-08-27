@@ -7,14 +7,16 @@ Start a simple app server:
  - retrieve field boundary info
  - basic file upload to Climate
 
-We use Flask in this example to provide a simple HTTP server. You will notice that some of the functions in this
-file are decorated with @app.route() which registers them with Flask as functions to service requests to the
-specified URIs.
+We use Flask in this example to provide a simple HTTP server. You will notice
+that some of the functions in this file are decorated with @app.route() which
+registers them with Flask as functions to service requests to the specified
+URIs.
 
-This file (main.py) provides the web UI and framework for the demo app. All the work with the Climate API
-happens in climate.py.
+This file (main.py) provides the web UI and framework for the demo app. All
+the work with the Climate API happens in climate.py.
 
-Note: For this example, only one "user" can be logged into the example app at a time.
+Note: For this example, only one "user" can be logged into the example app at
+a time.
 
 License:
 Copyright © 2018 The Climate Corporation
@@ -25,23 +27,24 @@ import os
 from logger import Logger
 
 from flask import Flask, request, redirect, url_for, send_from_directory
+from flask import Response
 import climate
 
-# Configuration of your Climate partner credentials. This assumes you have placed them in your environment. You may
+# Configuration of your Climate partner credentials. This assumes you have
+# placed them in your environment. You may
 # also choose to just hard code them here if you prefer.
 
 CLIMATE_API_ID = os.environ['CLIMATE_API_ID']         # OAuth2 client ID
-CLIMATE_API_SECRET = os.environ['CLIMATE_API_SECRET'] # OAuth2 client secret
-CLIMATE_API_SCOPES = os.environ['CLIMATE_API_SCOPES'] # Oauth2 scope list
+CLIMATE_API_SECRET = os.environ['CLIMATE_API_SECRET']   # OAuth2 client secret
+CLIMATE_API_SCOPES = os.environ['CLIMATE_API_SCOPES']  # Oauth2 scope list
 CLIMATE_API_KEY = os.environ['CLIMATE_API_KEY']       # X-Api-Key header
-
-
 # Partner app server
 
 app = Flask(__name__)
 logger = Logger(app.logger)
 
-# User state - only one user at a time. In your application this would be handled by your session management and backing
+# User state - only one user at a time. In your application this would be
+# handled by your session management and backing
 # storage.
 
 _state = {}
@@ -75,31 +78,34 @@ def state(key):
 def home():
     if state('user'):
         return user_homepage()
-    else:
-        return no_user_homepage()
+    return no_user_homepage()
 
 
 def no_user_homepage():
     """
-    This is logically the first place a user will come. On your site it will be some page where you present them with
-    a link to Log In with FieldView. The main thing here is that you provide a correctly formulated link with the
-    required parameters and correct button image.
+    This is logically the first place a user will come. On your site it will
+    be some page where you present them with a link to Log In with FieldView.
+    The main thing here is that you provide a correctly formulated link with
+    the required parameters and correct button image.
     :return: None
     """
     url = climate.login_uri(CLIMATE_API_ID, CLIMATE_API_SCOPES, redirect_uri())
     return """
             <h1>Partner API Demo Site</h1>
             <h2>Welcome to the Climate Partner Demo App.</h2>
-            <p>Imagine that this page is your great web application and you want to connect it with Climate FieldView.
-            To do this, you need to let your users establish a secure connection between your app and FieldView. You
-            do this using Log In with FieldView.</p>
-            <p style="text-align:center"><a href="{}"><img src="./res/fv-login-button.png"></a></p>""".format(url)
+            <p>Imagine that this page is your great web application and you
+            want to connect it with Climate FieldView. To do this, you need
+            to let your users establish a secure connection between your app
+            and FieldView. You do this using Log In with FieldView.</p>
+            <p style="text-align:center"><a href="{}">
+            <img src="./res/fv-login-button.png"></a></p>""".format(url)
 
 
 def user_homepage():
     """
-    This page just demonstrates some basic Climate FieldView API operations such as getting field details, accessing
-    user information and and refreshing the authorization token.
+    This page just demonstrates some basic Climate FieldView API operations
+    such as getting field details, accessing user information and and
+    refreshing the authorization token.
     :return: None
     """
     field_list = render_ul(render_field_link(f) for f in state('fields'))
@@ -107,7 +113,8 @@ def user_homepage():
            <h1>Partner API Demo Site</h1>
            <p>User name retrieved from FieldView: {first} {last}</p>
            <p>Access Token: {access_token}</p>
-           <p>Refresh Token: {refresh_token} (<a href="{refresh}">Refresh</a>)</p>
+           <p>Refresh Token: {refresh_token}
+           (<a href="{refresh}">Refresh</a>)</p>
            <p>Your Climate fields:{fields}</p>
            <p><a href="{upload}">Upload data</a></p>
            <p><a href="{scouting_observations}">Scouting Observations</a></p>
@@ -126,9 +133,10 @@ def user_homepage():
 @app.route('/login-redirect')
 def login_redirect():
     """
-    This is the page a user will come back to after having successfully logged in with FieldView. The URI was provided
-    as one of the parameters to the login URI above. The "code" parameter in the URI's query string contains the
-    access_token and refresh_token.
+    This is the page a user will come back to after having successfully logged
+    in with FieldView. The URI was provided as one of the parameters to the
+    login URI above. The "code" parameter in the URI's query string contains
+    the access_token and refresh_token.
     :return:
     """
     code = request.args['code']
@@ -141,9 +149,12 @@ def login_redirect():
             # Store tokens and user in state for subsequent requests.
             access_token = resp['access_token']
             refresh_token = resp['refresh_token']
-            set_state(user=resp['user'], access_token=access_token, refresh_token=refresh_token)
+            set_state(user=resp['user'],
+                      access_token=access_token,
+                      refresh_token=refresh_token)
 
-            # Fetch fields and store in state just for example purposes. You might well do this at the time of need,
+            # Fetch fields and store in state just for example purposes. You
+            # might well do this at the time of need,
             # or not at all depending on your app.
             fields = climate.get_fields(access_token, CLIMATE_API_KEY)
             set_state(fields=fields)
@@ -154,8 +165,9 @@ def login_redirect():
 @app.route('/refresh-token')
 def refresh_token():
     """
-    This route doesn't have any page associated with it; it just refreshes the authorization token and redirects back
-    to the home page. As a by-product, this also refreshes the user data.
+    This route doesn't have any page associated with it; it just refreshes the
+    authorization token and redirects back to the home page. As a by-product,
+    this also refreshes the user data.
     :return:
     """
     resp = climate.reauthorize(state('refresh_token'),
@@ -165,7 +177,8 @@ def refresh_token():
         # Store tokens and user in state for subsequent requests.
         access_token = resp['access_token']
         refresh_token = resp['refresh_token']
-        set_state(user=resp['user'], access_token=access_token, refresh_token=refresh_token)
+        set_state(user=resp['user'], access_token=access_token,
+                  refresh_token=refresh_token)
 
     return redirect(url_for('home'))
 
@@ -183,7 +196,8 @@ def logout_redirect():
 @app.route('/field/<field_id>')
 def field(field_id):
     """
-    Shows how to fetch field boundary information and displays it as raw geojson data.
+    Shows how to fetch field boundary information and displays it as raw
+    geojson data.
     :param field_id:
     :return:
     """
@@ -206,8 +220,9 @@ def field(field_id):
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_form():
     """
-    Initially (when method=GET) render the upload form to collect information about the file to upload.
-    When the form is POSTed, invoke the actual Climate API code to do the chunked upload.
+    Initially (when method=GET) render the upload form to collect information
+    about the file to upload.When the form is POSTed, invoke the actual Climate
+    API code to do the chunked upload.
     :return:
     """
     if request.method == 'POST':
@@ -216,14 +231,19 @@ def upload_form():
 
         f = request.files['file']
         content_type = request.form['file_content_type']
-        upload_id = climate.upload(f, content_type, state('access_token'), CLIMATE_API_KEY)
+        upload_id = climate.upload(
+            f, content_type, state('access_token'), CLIMATE_API_KEY)
 
         return """
-               <h1>Partner API Demo Site</h1>
-               <h2>Upload data</h2>
-               <p>File uploaded: {upload_id} <a href='{status_url}'>Get Status</a></p>
-               <p><a href="{home}">Return home</a></p>
-               """.format(upload_id=upload_id, status_url=url_for('update_status', upload_id=upload_id), home=url_for('home'))
+            <h1>Partner API Demo Site</h1>
+            <h2>Upload data</h2>
+            <p>File uploaded: {upload_id}
+            <a href='{status_url}'>Get Status</a></p>
+            <p><a href="{home}">Return home</a></p>
+            """.format(upload_id=upload_id,
+                       status_url=url_for(
+                           'update_status', upload_id=upload_id),
+                       home=url_for('home'))
 
     return """
            <h1>Partner API Demo Site</h1>
@@ -236,13 +256,16 @@ def upload_form():
            <p><a href="{home}">Return home</a></p>
            """.format(home=url_for('home'))
 
+
 @app.route('/upload/<upload_id>', methods=['GET'])
 def update_status(upload_id):
     """
-    Shows the status of an upload. Uploads are processed asynchronously so to know if an upload was successful you need
-    to check its status until it is either in the INBOX or SUCCESS state (it worked) or the INVALID state (it failed).
-    This method demonstrates the API call to get the status for a single upload id. There is also a call to get stattus
-    for a list of upload ids.
+    Shows the status of an upload. Uploads are processed asynchronously so to
+    know if an upload was successful you need to check its status until it is
+    either in the INBOX or SUCCESS state (it worked) or the INVALID state
+    (it failed). This method demonstrates the API call to get the status for
+    a single upload id. There is also a call to get stattus for a list
+    of upload ids.
     :param upload_id: uuid of upload returned by API.
     :return:
     """
@@ -253,7 +276,8 @@ def update_status(upload_id):
     return """
            <h1>Partner API Demo Site</h1>
            <h2>Upload ID: {upload_id}</h2>
-           <p>Status: {status} <a href="#" onclick="location.reload();">Refresh</a></p>
+           <p>Status: {status} <a href="#" onclick="location.reload();">
+           Refresh</a></p>
            <p><a href="{home}">Return home</a></p>
            """.format(upload_id=upload_id,
                       status=status.get('status'),
@@ -284,10 +308,29 @@ def render_field_link(field):
 
 
 def render_scouting_observation_link(scouting_observation):
-    id = scouting_observation['id']
-    return '<a href="{link}">{id}</a>'.format(
-        link=url_for('scouting_observation', scouting_observation_id=id),
-        id=id)
+    oid = scouting_observation['id']
+    return '<a href="{link}">{oid}</a>'.format(
+        link=url_for('scouting_observation', scouting_observation_id=oid),
+        oid=oid)
+
+
+def render_attachment_link(scouting_observation_id, attachment):
+    attachment_id = attachment['id']
+    if attachment['status'] == 'DELETED':
+        link = ''
+    else:
+        link = ': <a href="{link}" >Get contents</a>'.format(
+            link=url_for('scouting_observation_attachments_contents',
+                         scouting_observation_id=scouting_observation_id,
+                         attachment_id=attachment_id,
+                         contentType=attachment['contentType'],
+                         length=attachment['length']))
+
+    return """<h2>{attachment_id}{link}</h2>
+            <p><pre>{info}</pre></p>
+            """.format(link=link,
+                       attachment_id=attachment_id,
+                       info=json.dumps(attachment, indent=4, sort_keys=True))
 
 
 def redirect_uri():
@@ -299,30 +342,94 @@ def redirect_uri():
 
 @app.route('/scouting-observation/<scouting_observation_id>', methods=['GET'])
 def scouting_observation(scouting_observation_id):
-    observation = climate.get_scouting_observation(state('access_token'), CLIMATE_API_KEY, scouting_observation_id)
-    return  """
+    observation = climate.get_scouting_observation(state('access_token'),
+                                                   CLIMATE_API_KEY,
+                                                   scouting_observation_id)
+    return """
         <h1>Partner API Demo Site</h1>
         <h2>Scouting Observation ID: {scouting_observation_id}</h2>
         <p><pre>{json}</pre></p>
+        <p><a href='{attachments}'>List attachments</a></p>
         <p><a href='{observations}'>Return to Observations list</a></p>
+        <p><a href='{home}'>Return home</a></p>
         """.format(scouting_observation_id=scouting_observation_id,
-                json=json.dumps(observation, indent=4, sort_keys=True),
-                observations=url_for('scouting_observations'))
+                   json=json.dumps(observation, indent=4, sort_keys=True),
+                   observations=url_for('scouting_observations'),
+                   attachments=url_for(
+                       'scouting_observation_attachments',
+                       scouting_observation_id=scouting_observation_id),
+                   home=url_for('home'))
 
 
 @app.route('/scouting-observations', methods=['GET'])
 def scouting_observations():
-    observations = climate.get_scouting_observations(state('access_token'), CLIMATE_API_KEY, 100)
+    observations = climate.get_scouting_observations(state('access_token'),
+                                                     CLIMATE_API_KEY,
+                                                     100)
     body = "<p>No Scouting Observations found!</p>"
     if observations:
-        scouting_observations = render_ul(render_scouting_observation_link(o) for o in observations)
-        body = "<p>Your Climate Scouting Observations:{scouting_observations}</p>".format(scouting_observations=scouting_observations)
+        scouting_observations = render_ul(
+            render_scouting_observation_link(o) for o in observations)
+        body = "<p>Your Climate Scouting Observations:\
+        {scouting_observations}</p>".format(
+            scouting_observations=scouting_observations)
 
-    return  """
+    return """
             <h1>Partner API Demo Site</h1>
             {body}
             <p><a href='{home}'>Return home</a></p>
             """.format(body=body, home=url_for('home'))
+
+
+@app.route('/scouting-observation/<scouting_observation_id>/attachments',
+           methods=['GET'])
+def scouting_observation_attachments(scouting_observation_id):
+    ats = climate.get_scouting_observation_attachments(state('access_token'),
+                                                       CLIMATE_API_KEY,
+                                                       scouting_observation_id)
+
+    body = "<p>No attachments found!</p>"
+    if ats:
+        attachments = render_ul(
+            render_attachment_link(scouting_observation_id, a) for a in ats)
+        body = "<p>Your Climate Scouting Observations attachments:\
+        {attachments}</p>".format(
+            attachments=attachments)
+
+    return """
+            <h1>Partner API Demo Site</h1>
+            {body}
+            <p><a href='{attachments}'>Return to Observation:{soid}</a></p>
+            <p><a href='{home}'>Return home</a></p>
+            """.format(body=body,
+                       home=url_for('home'),
+                       attachments=url_for(
+                           'scouting_observation',
+                           scouting_observation_id=scouting_observation_id),
+                       soid=scouting_observation_id)
+
+
+@app.route(
+    '/scouting-observation/<scouting_observation_id>'
+    '/attachments/<attachment_id>',
+    methods=['GET'])
+def scouting_observation_attachments_contents(scouting_observation_id,
+                                              attachment_id):
+    content_type = request.args.get('contentType')
+    length = int(request.args.get('length'))
+    # stream the content back to client
+    headers = {
+        'Content-type': 'image/jpeg'
+    }
+    content = climate.get_scouting_observation_attachments_contents(
+        state('access_token'),
+        CLIMATE_API_KEY,
+        scouting_observation_id,
+        attachment_id,
+        content_type,
+        length
+    )
+    return Response(response=content, headers=headers)
 # start app
 
 
