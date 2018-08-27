@@ -319,7 +319,7 @@ def render_attachment_link(scouting_observation_id, attachment):
     if attachment['status'] == 'DELETED':
         link = ''
     else:
-        link = ':<a href="{link}" >Get contents</a>'.format(
+        link = ': <a href="{link}" >Get contents</a>'.format(
             link=url_for('scouting_observation_attachments_contents',
                          scouting_observation_id=scouting_observation_id,
                          attachment_id=attachment_id,
