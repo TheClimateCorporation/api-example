@@ -14,6 +14,7 @@ Copyright © 2018 The Climate Corporation
 import requests
 
 import file
+import os
 from base64 import b64encode
 from urllib.parse import urlencode
 from curlify import to_curl
@@ -26,6 +27,7 @@ binary_content_type = 'application/octet-stream'
 base_login_uri = 'https://climate.com/static/app-login/index.html'
 token_uri = 'https://api.climate.com/api/oauth/token'
 api_uri = 'https://platform.climate.com'
+CHUNK_SIZE = 5 * 1024 * 1024
 
 
 def login_uri(client_id, scopes, redirect_uri):
@@ -120,6 +122,8 @@ def reauthorize(refresh_token, client_id, client_secret):
     Logger().info(to_curl(res.request))
     if res.status_code == 200:
         return res.json()
+    
+    log_http_error(res)
     return None
 
 
@@ -167,6 +171,7 @@ def get_fields(token, api_key, next_token=None):
         next_token = res.headers['x-next-token']
         return res.json()['results'] + get_fields(token, api_key, next_token)
 
+    log_http_error(res)
     return []
 
 
@@ -194,6 +199,7 @@ def get_boundary(boundary_id, token, api_key):
     if res.status_code == 200:
         return res.json()
 
+    log_http_error(res)
     return None
 
 
@@ -204,8 +210,6 @@ def upload(f, content_type, token, api_key):
 
     Returns The upload id if the upload is successful, False otherwise.
     """
-    CHUNK_SIZE = 5 * 1024 * 1024
-
     uri = '{}/v4/uploads'.format(api_uri)
     headers = {
         'authorization': bearer_token(token),
@@ -250,6 +254,7 @@ def upload(f, content_type, token, api_key):
 
         if res.status_code == 204:
             return upload_id
+
     return False
 
 
@@ -276,6 +281,7 @@ def get_upload_status(upload_id, token, api_key):
     if res.status_code == 200:
         return res.json()
 
+    log_http_error(res)
     return None
 
 
@@ -329,7 +335,7 @@ def get_scouting_observations(token,
                                       next_token,
                                       occurred_after,
                                       occurred_before)
-
+    log_http_error(res)
     return []
 
 
@@ -358,7 +364,8 @@ def get_scouting_observation(token, api_key, scouting_observation_id):
 
     if res.status_code == 200:
         return res.json()
-
+    
+    log_http_error(res)
     return None
 
 
@@ -391,13 +398,34 @@ def get_scouting_observation_attachments(token,
     if res.status_code == 200:
         return res.json()['results']
 
+    log_http_error(res)
     return []
+
+
+def log_http_error(respone):
+    if respone.status_code == 403:
+        Logger().error("Permission error, current scopes are - {}".format(
+            os.environ['CLIMATE_API_SCOPES']))
+    elif respone.status_code == 400:
+        Logger().error("Bad request - {}".format(respone.json()))
+    elif respone.status_code == 401:
+        Logger().error("Unauthorized - {}".format(respone.json()))
+    elif respone.status_code == 404:
+        Logger().error("Resource not found - {}".format(respone.json()))
+    elif respone.status_code == 416:
+        Logger().error("Range Not Satisfiable - {}".format(respone.json()))
+    elif respone.status_code == 500:
+        Logger().error("Internal server error - {}".format(respone.json()))
+    elif respone.status_code == 503:
+        Logger().error("Server busy - {}".format(respone.json()))
 
 
 def get_scouting_observation_attachments_contents(token,
                                                   api_key,
                                                   scouting_observation_id,
-                                                  attachment_id):
+                                                  attachment_id,
+                                                  content_type,
+                                                  length):
     """
     Retrieve the binary contents of a scouting observation’s attachment.
     https://dev.fieldview.com/technical-documentation/ for possible status
@@ -414,16 +442,22 @@ def get_scouting_observation_attachments_contents(token,
         format(api_uri,
                scouting_observation_id,
                attachment_id)
+
     headers = {
         'authorization': bearer_token(token),
-        'accept': 'image/jpeg',
+        'accept': content_type,
         'x-api-key': api_key,
     }
+    content = None
+    chunk_size = 1 * 1024 * 1024
+    for start in range(0, length, chunk_size):
+        end = min(length, start + chunk_size)
+        headers['Range'] = 'bytes={}-{}'.format(start, end - 1)
+        res = requests.get(uri, headers=headers)
+        if res.status_code == 200 or res.status_code == 206:
+            yield res.content
+        else:
+            log_http_error(res)
+            break
 
-    res = requests.get(uri, headers=headers)
-    Logger().info(to_curl(res.request))
-
-    if res.status_code == 200 or res.status_code == 206:
-        return res.content
-
-    return None
+    return content

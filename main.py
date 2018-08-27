@@ -315,13 +315,22 @@ def render_scouting_observation_link(scouting_observation):
 
 
 def render_attachment_link(scouting_observation_id, attachment):
-    aid = attachment['id']
-    return '{aid}:<a href="{link}" >Get contents</a>'.format(
-        link=url_for('scouting_observation_attachments_contents',
-                     scouting_observation_id=scouting_observation_id,
-                     aid=aid),
+    attachment_id = attachment['id']
+    if attachment['status'] == 'DELETED':
+        link = ''
+    else:
+        link = ':<a href="{link}" >Get contents</a>'.format(
+            link=url_for('scouting_observation_attachments_contents',
+                         scouting_observation_id=scouting_observation_id,
+                         attachment_id=attachment_id,
+                         contentType=attachment['contentType'],
+                         length=attachment['length']))
 
-        aid=aid)
+    return """<h2>{attachment_id}{link}</h2>
+            <p><pre>{info}</pre></p>
+            """.format(link=link,
+                       attachment_id=attachment_id,
+                       info=json.dumps(attachment, indent=4, sort_keys=True))
 
 
 def redirect_uri():
@@ -401,38 +410,26 @@ def scouting_observation_attachments(scouting_observation_id):
 
 
 @app.route(
-    '/scouting-observation/<scouting_observation_id>/attachments/<aid>',
+    '/scouting-observation/<scouting_observation_id>'
+    '/attachments/<attachment_id>',
     methods=['GET'])
 def scouting_observation_attachments_contents(scouting_observation_id,
-                                              aid):
-
+                                              attachment_id):
+    content_type = request.args.get('contentType')
+    length = int(request.args.get('length'))
+    # stream the content back to client
+    headers = {
+        'Content-type': 'image/jpeg'
+    }
     content = climate.get_scouting_observation_attachments_contents(
         state('access_token'),
         CLIMATE_API_KEY,
         scouting_observation_id,
-        aid
+        attachment_id,
+        content_type,
+        length
     )
-
-    if content is not None:
-        headers = {
-            'Content-Disposition': 'attachment; filename="image.jpeg"'
-        }
-
-        res = Response(headers=headers, mimetype='image/jpeg')
-        res.set_data(content)
-        return res
-
-    return """
-            <h1>Partner API Demo Site</h1>
-            "No attachment data found."
-            <p><a href='{attachments}'>Return to Observation:{soid}</a></p>
-            <p><a href='{home}'>Return home</a></p>
-            """.format(home=url_for('home'),
-                       attachments=url_for(
-                           'scouting_observation_attachments',
-                           scouting_observation_id=scouting_observation_id),
-                       soid=scouting_observation_id)
-
+    return Response(response=content, headers=headers)
 # start app
 
 
