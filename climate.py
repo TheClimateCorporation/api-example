@@ -402,22 +402,22 @@ def get_scouting_observation_attachments(token,
     return []
 
 
-def log_http_error(respone):
-    if respone.status_code == 403:
+def log_http_error(response):
+    if response.status_code == 403:
         Logger().error("Permission error, current scopes are - {}".format(
             os.environ['CLIMATE_API_SCOPES']))
-    elif respone.status_code == 400:
-        Logger().error("Bad request - {}".format(respone.json()))
-    elif respone.status_code == 401:
-        Logger().error("Unauthorized - {}".format(respone.json()))
-    elif respone.status_code == 404:
-        Logger().error("Resource not found - {}".format(respone.json()))
-    elif respone.status_code == 416:
-        Logger().error("Range Not Satisfiable - {}".format(respone.json()))
-    elif respone.status_code == 500:
-        Logger().error("Internal server error - {}".format(respone.json()))
-    elif respone.status_code == 503:
-        Logger().error("Server busy - {}".format(respone.json()))
+    elif response.status_code == 400:
+        Logger().error("Bad request - {}".format(response.json()))
+    elif response.status_code == 401:
+        Logger().error("Unauthorized - {}".format(response.json()))
+    elif response.status_code == 404:
+        Logger().error("Resource not found - {}".format(response.json()))
+    elif response.status_code == 416:
+        Logger().error("Range Not Satisfiable - {}".format(response.json()))
+    elif response.status_code == 500:
+        Logger().error("Internal server error - {}".format(response.json()))
+    elif response.status_code == 503:
+        Logger().error("Server busy - {}".format(response.json()))
 
 
 def get_scouting_observation_attachments_contents(token,
