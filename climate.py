@@ -364,7 +364,7 @@ def get_scouting_observation(token, api_key, scouting_observation_id):
 
     if res.status_code == 200:
         return res.json()
-    
+
     log_http_error(res)
     return None
 
@@ -403,21 +403,26 @@ def get_scouting_observation_attachments(token,
 
 
 def log_http_error(response):
-    if response.status_code == 403:
+
+    """
+    Private function to log errors on server console
+    :param response: http response object.
+    """
+    if response.text.status_code == 403:
         Logger().error("Permission error, current scopes are - {}".format(
             os.environ['CLIMATE_API_SCOPES']))
-    elif response.status_code == 400:
-        Logger().error("Bad request - {}".format(response.json()))
-    elif response.status_code == 401:
-        Logger().error("Unauthorized - {}".format(response.json()))
-    elif response.status_code == 404:
-        Logger().error("Resource not found - {}".format(response.json()))
-    elif response.status_code == 416:
-        Logger().error("Range Not Satisfiable - {}".format(response.json()))
-    elif response.status_code == 500:
-        Logger().error("Internal server error - {}".format(response.json()))
-    elif response.status_code == 503:
-        Logger().error("Server busy - {}".format(response.json()))
+    elif response.text.status_code == 400:
+        Logger().error("Bad request - {}".format(response.text))
+    elif response.text.status_code == 401:
+        Logger().error("Unauthorized - {}".format(response.text))
+    elif response.text.status_code == 404:
+        Logger().error("Resource not found - {}".format(response.text))
+    elif response.text.status_code == 416:
+        Logger().error("Range Not Satisfiable - {}".format(response.text))
+    elif response.text.status_code == 500:
+        Logger().error("Internal server error - {}".format(response.text))
+    elif response.text.status_code == 503:
+        Logger().error("Server busy - {}".format(response.text))
 
 
 def get_scouting_observation_attachments_contents(token,
@@ -461,3 +466,104 @@ def get_scouting_observation_attachments_contents(token,
             break
 
     return content
+
+
+def get_as_planted(token, api_key, next_token):
+    """
+    Retrieve as Planted activities
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param next_token: Opaque string which allows for fetching the next batch
+        of results.
+    """
+    return get_activities(token, api_key, next_token, "asPlanted")
+
+
+def get_as_harvested(token, api_key, next_token):
+    """
+    Retrieve as Harvested activities
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param next_token: Opaque string which allows for fetching the next batch
+        of results.
+    """
+
+    return get_activities(token, api_key, next_token, "asHarvested")
+
+
+def get_as_applied(token, api_key, next_token):
+    """
+    Retrieve as Applied activities
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param next_token: Opaque string which allows for fetching the next batch
+        of results.
+    """
+
+    return get_activities(token, api_key, next_token, "asApplied")
+
+
+def get_activities(token, api_key, next_token, activity):
+    """
+    Retrieve a list of field activities.
+    https://dev.fieldview.com/technical-documentation/ for possible status
+    values and their meaning.
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param next-token: Opaque string which allows for fetching the next batch
+        of results.
+    :param activity: name of activity
+
+    """
+    uri = '{}/v4/layers/{}'.format(api_uri, activity)
+
+    headers = {
+        'authorization': bearer_token(token),
+        'x-api-key': api_key,
+        'x-next-token': next_token,
+        'x-limit': str(10)
+    }
+
+    res = requests.get(uri, headers=headers)
+
+    if res.status_code == 200:
+        return None, res.json()['results']
+    if res.status_code == 206:
+        return res.headers['x-next-token'], res.json()['results']
+    if res.status_code == 304:
+        return None, None
+
+    log_http_error(res)
+
+    return None, None
+
+
+def get_activity_contents(token, api_key, layer_id, activity_id, length):
+    """
+    Retrieve a content of field activity.
+    https://dev.fieldview.com/technical-documentation/ for possible status
+    values and their meaning.
+    :param token: access_token
+    :param api_key: Provided by Climate
+    :param layer_id: name of activity
+    :param activity_id: id of activity
+    :param length: content length
+
+    """
+    uri = '{}/v4/layers/{}/{}/contents'.format(api_uri, layer_id, activity_id)
+
+    headers = {
+        'authorization': bearer_token(token),
+        'x-api-key': api_key,
+    }
+
+    chunk_size = 1 * 1024 * 1024
+    for start in range(0, length, chunk_size):
+        end = min(length, start + chunk_size)
+        headers['Range'] = 'bytes={}-{}'.format(start, end - 1)
+        res = requests.get(uri, headers=headers)
+        if res.status_code == 200 or res.status_code == 206:
+            yield res.content
+        else:
+            log_http_error(res)
+            break
