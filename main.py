@@ -27,7 +27,7 @@ import os
 from logger import Logger
 
 from flask import Flask, request, redirect, url_for, send_from_directory
-from flask import Response
+from flask import Response, stream_with_context
 import climate
 
 # Configuration of your Climate partner credentials. This assumes you have
@@ -115,9 +115,16 @@ def user_homepage():
            <p>Access Token: {access_token}</p>
            <p>Refresh Token: {refresh_token}
            (<a href="{refresh}">Refresh</a>)</p>
+           <table style="border-spacing: 50px 0;"><tr><td>
            <p>Your Climate fields:{fields}</p>
            <p><a href="{upload}">Upload data</a></p>
            <p><a href="{scouting_observations}">Scouting Observations</a></p>
+           </td><td>
+           <p>Your fields activities:</p>
+           <p><a href="{as_planted}" > asPlanted </a></p>
+           <p><a href="{as_harvested}" > asHarvested </a></p>
+           <p><a href="{as_applied}" > asApplied</a></p>
+           </td></tr></table>
            <p><a href="{logout}">Log out</a></p>
            """.format(first=state('user')['firstname'],
                       last=state('user')['lastname'],
@@ -127,7 +134,10 @@ def user_homepage():
                       upload=url_for('upload_form'),
                       logout=url_for('logout_redirect'),
                       refresh=url_for('refresh_token'),
-                      scouting_observations=url_for('scouting_observations'))
+                      scouting_observations=url_for('scouting_observations'),
+                      as_planted=url_for('as_planted'),
+                      as_harvested=url_for('as_harvested'),
+                      as_applied=url_for('as_applied'))
 
 
 @app.route('/login-redirect')
@@ -333,6 +343,21 @@ def render_attachment_link(scouting_observation_id, attachment):
                        info=json.dumps(attachment, indent=4, sort_keys=True))
 
 
+def render_activitiy_link(activity, link):
+    activity_id = activity['id']
+    link = '{link}/{activity_id}/contents?length={length}'.format(
+        link=link,
+        activity_id=activity_id,
+        length=activity['length'])
+
+    return """
+            {activity_id} : <a href="{link}"> Get contents </a>
+            <p><pre>{body}</pre></p>
+           """.format(activity_id=activity_id,
+                      link=link,
+                      body=json.dumps(activity, indent=4, sort_keys=True))
+
+
 def redirect_uri():
     """
     :return: Returns uri for redirection after Log In with FieldView.
@@ -342,6 +367,12 @@ def redirect_uri():
 
 @app.route('/scouting-observation/<scouting_observation_id>', methods=['GET'])
 def scouting_observation(scouting_observation_id):
+    """
+    Shows the details of a scouting observation
+    :param scouting_observation_id: a scouting observation identifier
+
+    :return: returns the html response
+    """
     observation = climate.get_scouting_observation(state('access_token'),
                                                    CLIMATE_API_KEY,
                                                    scouting_observation_id)
@@ -363,6 +394,11 @@ def scouting_observation(scouting_observation_id):
 
 @app.route('/scouting-observations', methods=['GET'])
 def scouting_observations():
+    """
+    Displays the list of scouting observations
+
+    :return: returns the html response which shows list of observations
+    """
     observations = climate.get_scouting_observations(state('access_token'),
                                                      CLIMATE_API_KEY,
                                                      100)
@@ -384,6 +420,11 @@ def scouting_observations():
 @app.route('/scouting-observation/<scouting_observation_id>/attachments',
            methods=['GET'])
 def scouting_observation_attachments(scouting_observation_id):
+    """
+    Shows the list of attachments for a given scouting observation
+    :param scouting_observation_id: a scouting observation identifier
+    :return: returns html which shows list of attachments.
+    """
     ats = climate.get_scouting_observation_attachments(state('access_token'),
                                                        CLIMATE_API_KEY,
                                                        scouting_observation_id)
@@ -415,6 +456,12 @@ def scouting_observation_attachments(scouting_observation_id):
     methods=['GET'])
 def scouting_observation_attachments_contents(scouting_observation_id,
                                               attachment_id):
+    """
+    Downloads the attachment contents
+    :param scouting_observation_id: a scouting observation identifier
+    :param attachment_id: an attachment identifier
+    :return: returns contents of attachment.
+    """
     content_type = request.args.get('contentType')
     length = int(request.args.get('length'))
     # stream the content back to client
@@ -430,6 +477,92 @@ def scouting_observation_attachments_contents(scouting_observation_id,
         length
     )
     return Response(response=content, headers=headers)
+
+
+def get_callee(activity):
+    method = 'get_{}'.format(activity)
+    return getattr(climate, method)
+
+
+def handle_activity(activity):
+
+    next_token = request.args.get('next_token')
+    has_more_records, activities = get_callee(activity)(
+        state('access_token'),
+        CLIMATE_API_KEY,
+        next_token)
+
+    body = "<p>No data found!</p>"
+
+    if activities is not None:
+        activities_list = render_ul(render_activitiy_link(
+            a, url_for(activity)) for a in activities)
+        body = "<p>Your Climate {activity} activities:{activities_list}</p>"\
+            .format(activities_list=activities_list, activity=activity)
+
+    more_records_html = ""
+    if has_more_records is not None:
+        next_link = url_for(activity, next_token=has_more_records)
+        more_records_html = "<p><a href='{next_link}'>More records >>\
+                            </a></p>".format(next_link=next_link)
+    return """
+            <h1>Partner API Demo Site</h1>
+            {body}
+            {more_records_html}
+            <p><a href='{home}'>Return home</a></p>
+            """.format(body=body,
+                       home=url_for('home'),
+                       more_records_html=more_records_html)
+
+
+@app.route('/layers/asPlanted', methods=['GET'])
+def as_planted():
+    """
+    Shows list of planting activities
+    :return: returns planting activities.
+    """
+    return handle_activity("as_planted")
+
+
+@app.route('/layers/asHarvested', methods=['GET'])
+def as_harvested():
+    """
+    Shows list of harvesting activities
+    :return: returns harvesting activities.
+    """
+    return handle_activity("as_harvested")
+
+
+@app.route('/layers/asApplied', methods=['GET'])
+def as_applied():
+    """
+    Shows list of application activities
+    :return: returns application activities.
+    """
+    return handle_activity("as_applied")
+
+
+@app.route('/layers/<layer_id>/<activity_id>/contents')
+def get_activity_contents(layer_id, activity_id):
+    """
+    Download the contents of given activity
+    :param layer_id: name of activity
+    :param activity_id: id of activity
+    :return: returns contents of given activity.
+    """
+    length = int(request.args.get('length'))
+    content = climate.get_activity_contents(
+        state('access_token'),
+        CLIMATE_API_KEY,
+        layer_id,
+        activity_id,
+        length)
+    response = Response(stream_with_context(content),
+                        mimetype='application/zip')
+    response.headers['Content-Disposition'] = 'attachment; filename=data.zip'
+    return response
+
+
 # start app
 
 
