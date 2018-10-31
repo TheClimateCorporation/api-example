@@ -1,9 +1,8 @@
--f https://xdeps.ci.climatedna.net/python/wheels/
 click==6.7
-Flask==0.12
+Flask==0.12.3
 itsdangerous==0.24
 Jinja2==2.9.5
 MarkupSafe==1.0
-requests==2.13.0
+requests==2.20.0
 Werkzeug==0.11.15
 curlify==1.2.1
