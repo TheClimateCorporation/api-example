@@ -8,16 +8,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class HomeController extends BaseController{
-
-
-	@GetMapping("/")
-	public String home(Model model, HttpSession session, HttpServletRequest request) {
-
-		if (isUserLoggedIn(session)) {
-			return "home";
-		}
-		model.addAttribute("loginUri", config.buildOauthLink(request.getRequestURL().toString()));
-		return "index";
-	}
+public class HomeController extends BaseController {
+    private static final String LOGIN_URI = "loginUri";
+    @GetMapping("/")
+    public String home(Model model, HttpSession session, HttpServletRequest request) {
+        if (isUserLoggedIn(session)) {
+            return HOME_PAGE;
+        }
+        model.addAttribute(LOGIN_URI, config.buildOauthLink(request.getRequestURL().toString()));
+        return INDEX_PAGE;
+    }
 }

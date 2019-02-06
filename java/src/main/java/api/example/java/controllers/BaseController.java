@@ -12,43 +12,47 @@ import api.example.java.Config;
 import api.example.java.model.TokenResponse;
 
 public class BaseController {
+    protected final String HOME_PAGE = "home";
+    protected final String INDEX_PAGE = "index";
+    protected final String REDIRECT_TO_HOME_PAGE = "redirect:/";
+    protected final String TOKEN_RESPONSE = "tokenResponse";
+    protected final String CODE = "code";
+    protected final String REFRESH_TOKEN = "refresh_token";
+    @Autowired
+    protected Config config;
 
-	@Autowired
-	protected Config config;
+    protected String getAccessTokenFromSession(HttpServletRequest request) {
+        String token = "";
+        if (request.getSession().getAttribute(TOKEN_RESPONSE) instanceof TokenResponse) {
+            TokenResponse tokenResponse = (TokenResponse) request.getSession().getAttribute(TOKEN_RESPONSE);
+            token = tokenResponse.getAccessToken();
+        }
+        return token;
+    }
 
-	public BaseController() {
-	}
+    protected boolean isUserLoggedIn(HttpSession session) {
+        return session.getAttribute(TOKEN_RESPONSE) != null;
+    }
 
-	protected String getAccessTokenFromSession(HttpServletRequest request) {
-		TokenResponse tokenResponse = (TokenResponse) request.getSession().getAttribute("tokenResponse");
-		return tokenResponse.getAccessToken();
-	}
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<String> handleWebClientResponseException(WebClientResponseException ex) {
+        return ResponseEntity.status(ex.getRawStatusCode()).body(ex.getResponseBodyAsString());
+    }
 
-	protected boolean isUserLoggedIn(HttpSession session) {
-		Object tokenResponse = session.getAttribute("tokenResponse");
-		if (tokenResponse != null) {
-			return true;
-		}
-	
-		return false;
-	}
+    protected void saveTokenResponseInSession(HttpServletRequest request, TokenResponse tokenResponse) {
+        request.getSession().setAttribute(TOKEN_RESPONSE, tokenResponse);
+    }
 
-	@ExceptionHandler(WebClientResponseException.class)
-	public ResponseEntity<String> handleWebClientResponseException(WebClientResponseException ex) {
-		return ResponseEntity.status(ex.getRawStatusCode()).body(ex.getResponseBodyAsString());
-	}
+    protected void cleanSession(HttpServletRequest request) {
+        request.getSession().removeAttribute(TOKEN_RESPONSE);
 
-	protected void saveTokenResponseInSession(HttpServletRequest request, TokenResponse tokenResponse) {
-		request.getSession().setAttribute("tokenResponse", tokenResponse);
-	}
-	protected void cleanSession(HttpServletRequest request) {
-		request.getSession().removeAttribute("tokenResponse");
-		
-	}	
-	protected String agronomicApiUri() {
-		return config.buildAgronomicApiUri();
-	}
-	protected String agronomicContentsApiUri(String id, String dataType) {
-		return config.buildAgronomicContentsApiUri(id, dataType);
-	}
+    }
+
+    protected String agronomicApiUri(String dataType) {
+        return config.buildAgronomicApiUri(dataType);
+    }
+
+    protected String agronomicContentsApiUri(String id, String dataType) {
+        return config.buildAgronomicContentsApiUri(id, dataType);
+    }
 }

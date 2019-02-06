@@ -16,80 +16,67 @@ import api.example.java.model.ActivityResult;
 
 @Component
 public class ClimateAPIs {
+    private static Logger logger = LoggerFactory.getLogger(ClimateAPIs.class);
+    @Autowired
+    protected RequestClient requestClient;
+    @Autowired
+    protected Config config;
 
-	private static Logger logger = LoggerFactory.getLogger(ClimateAPIs.class);
+    public Iterator<ActivityResult> getActivityIterator(String uri, String accessToken) {
+        return new Iterator<ActivityResult>() {
+            private boolean hasNext = true;
+            private String xLimitValue = "30";
+            private HttpHeaders responseHeaders = new HttpHeaders();
+            private final String xNextToken = "x-next-token";
+            private final String xLimit = "x-limit";
 
-	@Autowired
-	protected RequestClient requestClient;
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
 
-	@Autowired
-	protected Config config;
+            @Override
+            public ActivityResult next() {
+                return requestClient.getWebClient(uri, accessToken, config.apiKey).get().header(xLimit, xLimitValue)
+                        .header(xNextToken, nextTokenValue()).exchange().doOnSuccess(clientResponse -> {
+                            responseHeaders = clientResponse.headers().asHttpHeaders();
+                            logger.info("Headers -> {}", responseHeaders);
+                            logger.info("Status code -> {}", clientResponse.statusCode());
+                            if (clientResponse.statusCode() == HttpStatus.PARTIAL_CONTENT
+                                    || clientResponse.statusCode() == HttpStatus.OK) {
+                                hasNext = true;
+                            } else {
+                                hasNext = false;
+                            }
+                        }).flatMap(res -> res.bodyToMono(ActivityResult.class)).block();
+            }
 
-	public Iterator<ActivityResult> getActivityIterator(String uri, String dataType, String accessToken) {
+            private String nextTokenValue() {
+                List<String> headers = responseHeaders.get(this.xNextToken);
+                return headers == null ? "" : headers.get(0);
+            }
+        };
+    }
 
-		return new Iterator<ActivityResult>() {
-			private boolean hasNext = true;
-			private String xLimitValue = "30";
-			private HttpHeaders responseHeader = new HttpHeaders();
-			private final String xNextToken = "x-next-token";
-			private final String xLimt = "x-limit";
+    public Iterator<ByteArrayResource> getContentIterator(String uri, Integer length, String accessToken) {
+        return new Iterator<ByteArrayResource>() {
+            private final int BUFFER_LEN = 1024 * 1024;
+            private int currentLength = 0;
 
-			@Override
-			public boolean hasNext() {
-				return hasNext;
-			}
+            @Override
+            public boolean hasNext() {
+                return currentLength < length;
+            }
 
-			@Override
-			public ActivityResult next() {
-				return requestClient.getWebClient(uri, accessToken, config.apiKey).get().header(xLimt, xLimitValue)
-						.header(xNextToken, nextTokenValue()).exchange().doOnSuccess(clientResponse -> {
-							responseHeader = clientResponse.headers().asHttpHeaders();
-							logger.info("Headers -> {}", responseHeader);
-							logger.info("Status code -> {}", clientResponse.statusCode());
-							if (clientResponse.statusCode() == HttpStatus.PARTIAL_CONTENT
-									|| clientResponse.statusCode() == HttpStatus.OK) {
-								hasNext = true;
-							} else {
-								hasNext = false;
-							}
-						}).flatMap(res -> res.bodyToMono(ActivityResult.class)).block();
-			}
+            @Override
+            public ByteArrayResource next() {
+                int start = currentLength;
+                currentLength += BUFFER_LEN;
+                return requestClient.getWebClient(uri, accessToken, config.apiKey).get()
+                        .header("Range", String.format("bytes=%s-%s", start, currentLength - 1)).retrieve()
+                        .bodyToMono(ByteArrayResource.class).block();
+            }
+        };
 
-			private String nextTokenValue() {
-				String xNextToken;
-				List<String> headers = responseHeader.get(this.xNextToken);
-				if (headers == null) {
-					xNextToken = "";
-				} else {
-					xNextToken = headers.get(0);
-				}
-				return xNextToken;
-			}
-		};
-	}
-
-	public Iterator<ByteArrayResource> getContentIterator(String uri, String dataType, String id, Integer length,
-			String accessToken) {
-
-		return new Iterator<ByteArrayResource>() {
-			private final int BUFFER_LEN = 1024 * 1024;
-			private int currentLength = 0;
-
-			@Override
-			public boolean hasNext() {
-				return currentLength < length;
-
-			}
-
-			@Override
-			public ByteArrayResource next() {
-				int start = currentLength;
-				currentLength += BUFFER_LEN;
-				return requestClient.getWebClient(uri, accessToken, config.apiKey).get()
-						.header("Range", String.format("bytes=%s-%s", start, currentLength - 1)).retrieve()
-						.bodyToMono(ByteArrayResource.class).block();
-			}
-		};
-
-	}
+    }
 }

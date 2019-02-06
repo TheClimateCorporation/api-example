@@ -4,47 +4,47 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TokenResponse {
 
-	@JsonProperty("access_token")
-	private String accessToken;
+    @JsonProperty("access_token")
+    private String accessToken;
 
-	@JsonProperty("refresh_token")
-	private String responseToken;
+    @JsonProperty("refresh_token")
+    private String responseToken;
 
-	@JsonProperty("scope")
-	private String scopes;
+    @JsonProperty("scope")
+    private String scopes;
 
-	private User user;
+    private User user;
 
-	public User getUser() {
-		return user;
-	}
-	
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public User getUser() {
+        return user;
+    }
 
-	public String getAccessToken() {
-		return accessToken;
-	}
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
-	}
+    public String getAccessToken() {
+        return accessToken;
+    }
 
-	public String getRefreshToken() {
-		return responseToken;
-	}
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
 
-	public void setResponseToken(String responseToken) {
-		this.responseToken = responseToken;
-	}
+    public String getRefreshToken() {
+        return responseToken;
+    }
 
-	public String getScopes() {
-		return scopes;
-	}
+    public void setResponseToken(String responseToken) {
+        this.responseToken = responseToken;
+    }
 
-	public void setScopes(String scopes) {
-		this.scopes = scopes;
-	}
+    public String getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(String scopes) {
+        this.scopes = scopes;
+    }
 
 }
