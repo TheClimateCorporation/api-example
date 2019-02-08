@@ -45,7 +45,6 @@ public class BaseController {
 
     protected void cleanSession(HttpServletRequest request) {
         request.getSession().removeAttribute(TOKEN_RESPONSE);
-
     }
 
     protected String agronomicApiUri(String dataType) {
