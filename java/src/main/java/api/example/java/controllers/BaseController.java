@@ -13,12 +13,12 @@ import api.example.java.model.TokenResponse;
 
 public class BaseController {
     protected static final String LOGIN_REDIRECT = "login-redirect";
-    protected final String HOME_PAGE = "home";
-    protected final String INDEX_PAGE = "index";
-    protected final String REDIRECT_TO_HOME_PAGE = "redirect:/";
-    protected final String TOKEN_RESPONSE = "tokenResponse";
-    protected final String CODE = "code";
-    protected final String REFRESH_TOKEN = "refresh_token";
+    protected static final String HOME_PAGE = "home";
+    protected static final String INDEX_PAGE = "index";
+    protected static final String REDIRECT_TO_HOME_PAGE = "redirect:/";
+    protected static final String TOKEN_RESPONSE = "tokenResponse";
+    protected static final String CODE = "code";
+    protected static final String REFRESH_TOKEN = "refresh_token";
     @Autowired
     protected Config config;
 
