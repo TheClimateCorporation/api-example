@@ -3,7 +3,6 @@
 Example app exercising some of Climate's [FieldView Platform APIs](https://dev.fieldview.com).
 
 ## Setup
-
 1. Install [Java 8+](https://www.java.com/en/download/)
 2. Install [Gradle](https://gradle.org/install/)
 3. Set the following environment variables

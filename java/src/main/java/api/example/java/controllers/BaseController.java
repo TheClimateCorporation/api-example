@@ -12,6 +12,7 @@ import api.example.java.Config;
 import api.example.java.model.TokenResponse;
 
 public class BaseController {
+    protected static final String LOGIN_REDIRECT = "login-redirect";
     protected final String HOME_PAGE = "home";
     protected final String INDEX_PAGE = "index";
     protected final String REDIRECT_TO_HOME_PAGE = "redirect:/";

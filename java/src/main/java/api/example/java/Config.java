@@ -50,15 +50,23 @@ public class Config {
         }
     }
 
-    public String buildOauthLink(String server) {
+    public String buildOauthLink(String redirectUri) {
         /*
          * https://climate.com/static/app-login/index.html?scope=${scope}
          * &page=oidcauthn&response_type=code&redirect_uri=${redirect_uri}
          * &client_id=${client_id}
          */
-        return UriComponentsBuilder.newInstance().scheme("https").host(loginServer).path(loginPath)
-                .queryParam("page", "oidcauthn").queryParam("response_type", "code").queryParam("scope", scopes)
-                .queryParam("client_id", clientId).queryParam("redirect_uri", server + "login-redirect").build()
+        return UriComponentsBuilder
+                .newInstance()
+                .scheme("https")
+                .host(loginServer)
+                .path(loginPath)
+                .queryParam("page", "oidcauthn")
+                .queryParam("response_type", "code")
+                .queryParam("scope", scopes)
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", redirectUri)
+                .build()
                 .toUriString();
     }
 
@@ -69,7 +77,7 @@ public class Config {
 
     public String buildAgronomicApiUri(String dataType) {
         // https://platform.climate.com/v4/layers
-        return getUriComponentsBuilder(apiServer, "/v4/layers/"+dataType);
+        return getUriComponentsBuilder(apiServer, "/v4/layers/" + dataType);
     }
 
     public String getBase64Credentials() {
@@ -82,7 +90,12 @@ public class Config {
     }
 
     private String getUriComponentsBuilder(String host, String path) {
-        return UriComponentsBuilder.newInstance().scheme("https").host(host).path(path).build().toString();
+        return UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(host)
+                .path(path)
+                .build()
+                .toString();
     }
 
 }

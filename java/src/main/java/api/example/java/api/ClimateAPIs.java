@@ -37,8 +37,12 @@ public class ClimateAPIs {
 
             @Override
             public ActivityResult next() {
-                return requestClient.getWebClient(uri, accessToken, config.apiKey).get().header(xLimit, xLimitValue)
-                        .header(xNextToken, nextTokenValue()).exchange().doOnSuccess(clientResponse -> {
+                return requestClient.getWebClient(uri, accessToken, config.apiKey)
+                        .get()
+                        .header(xLimit, xLimitValue)
+                        .header(xNextToken, nextTokenValue())
+                        .exchange()
+                        .doOnSuccess(clientResponse -> {
                             responseHeaders = clientResponse.headers().asHttpHeaders();
                             logger.info("Headers -> {}", responseHeaders);
                             logger.info("Status code -> {}", clientResponse.statusCode());
@@ -48,7 +52,9 @@ public class ClimateAPIs {
                             } else {
                                 hasNext = false;
                             }
-                        }).flatMap(res -> res.bodyToMono(ActivityResult.class)).block();
+                        })
+                        .flatMap(res -> res.bodyToMono(ActivityResult.class))
+                        .block();
             }
 
             private String nextTokenValue() {
@@ -72,9 +78,12 @@ public class ClimateAPIs {
             public ByteArrayResource next() {
                 int start = currentLength;
                 currentLength += BUFFER_LEN;
-                return requestClient.getWebClient(uri, accessToken, config.apiKey).get()
-                        .header("Range", String.format("bytes=%s-%s", start, currentLength - 1)).retrieve()
-                        .bodyToMono(ByteArrayResource.class).block();
+                return requestClient.getWebClient(uri, accessToken, config.apiKey)
+                        .get()
+                        .header(HttpHeaders.RANGE, String.format("bytes=%s-%s", start, currentLength - 1))
+                        .retrieve()
+                        .bodyToMono(ByteArrayResource.class)
+                        .block();
             }
         };
 

@@ -37,7 +37,10 @@ public class ClimateOAuth {
 
     private TokenResponse makeRequest(MultiValueMap<String, String> formData) {
         TokenResponse tokenResponse = requestClient.getWebClient(config.buildTokenUri(), config.getBase64Credentials())
-                .post().body(BodyInserters.fromFormData(formData)).retrieve().bodyToMono(TokenResponse.class).block();
+                .post()
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve().bodyToMono(TokenResponse.class)
+                .block();
         return tokenResponse;
     }
 
