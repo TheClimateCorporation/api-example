@@ -11,7 +11,7 @@ Example app exercising some of Climate's [FieldView Platform APIs](https://dev.f
 export CLIENT_ID="my-api-id"
 export CLIENT_SECRET="azbq56fpadhnt8oukoeani2a4w"
 export API_KEY="my-api-id-216b9875-0158-4142-1ab2-7c3bdbd6a2157"
-export API_SCOPES=" fields:read asPlanted:read"
+export API_SCOPES="fields:read asPlanted:read"
 ```
 Regarding scopes - see the [FieldView API technical documentation](https://dev.fieldview.com/technical-documentation/) for more scopes and their
 corresponding endpoints (click the `Authorize` button in the swagger docs).
