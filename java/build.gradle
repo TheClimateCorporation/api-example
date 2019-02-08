@@ -1,0 +1,52 @@
+/*
+ * This generated file contains a sample Java project to get you started.
+ * For more details take a look at the Java Quickstart chapter in the Gradle
+ * user guide available at https://docs.gradle.org/5.1.1/userguide/tutorial_java_projects.html
+ */
+
+plugins {
+    // Apply the java plugin to add support for Java
+    id 'java'
+    // Apply the application plugin to add support for building an application
+    id 'application'
+    //plugin for eclipse web application
+    id 'eclipse-wtp'
+    id 'com.gradle.build-scan' version '2.0.2'
+    // spring boot
+    id 'org.springframework.boot' version '2.1.2.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.6.RELEASE'
+}
+eclipse {
+    wtp {
+        facet {
+            facets = []
+            facet name: 'jst.web', version: '2.4'
+            facet name: 'jst.java', version: '10'
+        }
+    } 
+}
+
+repositories {
+    // Use jcenter for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+    mavenCentral()
+    maven { url 'https://plugins.gradle.org/m2/' }
+    maven { url 'https://repo.spring.io/release' }
+}
+
+dependencies {
+    // This dependency is found on compile classpath of this component and consumers.
+    implementation 'com.google.guava:guava:26.0-jre'
+    implementation 'org.springframework.boot:spring-boot-dependencies:2.0.5.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
+    implementation 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+
+}
+// Define the main class for the application
+mainClassName = 'api.example.java.App'
