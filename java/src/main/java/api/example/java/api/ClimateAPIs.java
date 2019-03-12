@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import api.example.java.Config;
 import api.example.java.model.ActivityResult;
+import api.example.java.model.FieldResult;
 
 @Component
 public class ClimateAPIs {
@@ -87,5 +88,13 @@ public class ClimateAPIs {
             }
         };
 
+    }
+
+    public FieldResult getFields(String uri, String accessToken) {
+        return requestClient.getWebClient(uri, accessToken, config.apiKey)
+                .get()
+                .retrieve()
+                .bodyToMono(FieldResult.class)
+                .block();
     }
 }

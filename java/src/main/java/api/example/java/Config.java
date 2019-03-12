@@ -97,5 +97,8 @@ public class Config {
                 .build()
                 .toString();
     }
-
+    public String buildFieldsApiUri() {
+        // https://platform.climate.com/v4/fields
+        return getUriComponentsBuilder(apiServer, "/v4/fields");
+    }
 }

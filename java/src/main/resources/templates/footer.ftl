@@ -8,11 +8,15 @@
         &nbsp;|
     <a href=${"refresh-token?refresh_token="}${tokenResponse.refreshToken}>Refresh Token</a>
     <#if tokenResponse.scopes?has_content>
+        <#if tokenResponse.scopes?contains("fields:read")>
+            &nbsp;|
+            <a href=${"fields"}>Fields</a>
+        </#if>
         <#if tokenResponse.scopes?contains("asPlanted:read")>
             &nbsp;|
             <a href=${"agronomic?data=asPlanted"}> asPlanted</a>
         </#if>
-        <#if tokenResponse.scopes?contains("asPlanted:read")>
+        <#if tokenResponse.scopes?contains("asApplied:read")>
             &nbsp;|
             <a href=${"agronomic?data=asApplied"}> asApplied</a>
         </#if>

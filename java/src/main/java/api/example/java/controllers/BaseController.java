@@ -55,4 +55,8 @@ public class BaseController {
     protected String agronomicContentsApiUri(String id, String dataType) {
         return config.buildAgronomicContentsApiUri(id, dataType);
     }
+
+    protected String fieldsApiUri() {
+        return config.buildFieldsApiUri();
+    }
 }
