@@ -220,7 +220,10 @@ def upload(f, content_type, token, api_key):
     data = {
         'md5': md5,
         'length': length,
-        'contentType': content_type
+        'contentType': content_type,
+        'metadata' : {
+            'fileName' : f.filename
+        }
     }
 
     # initiate upload
