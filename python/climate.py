@@ -23,6 +23,7 @@ from logger import Logger
 
 json_content_type = 'application/json'
 binary_content_type = 'application/octet-stream'
+metadata_content_types = ['application/vnd.climate.as-applied.zip']
 
 base_login_uri = 'https://climate.com/static/app-login/index.html'
 token_uri = 'https://api.climate.com/api/oauth/token'
@@ -220,11 +221,13 @@ def upload(f, content_type, token, api_key):
     data = {
         'md5': md5,
         'length': length,
-        'contentType': content_type,
-        'metadata' : {
+        'contentType': content_type
+    }
+
+    if any(content_type in ct for ct in metadata_content_types):
+        data['metadata'] = {
             'fileName' : f.filename
         }
-    }
 
     # initiate upload
     res = requests.post(uri, headers=headers, json=data)
