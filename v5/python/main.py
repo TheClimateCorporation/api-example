@@ -18,7 +18,7 @@ Note: For this example, only one "user" can be logged into the example app at
 a time.
 
 License:
-Copyright © 2018 The Climate Corporation
+Copyright © 2022 Climate, LLC
 """
 
 import json
@@ -66,6 +66,14 @@ def state(key):
     global _state
     return _state.get(key)
 
+
+def page(content):
+    return """
+    <h1>Partner API Demo Site</h1>
+    {content}
+    <p><a href="{home}">Return home</a></p>
+    """.format(content=content, home=url_for('home'))
+
 # Routes
 
 
@@ -85,16 +93,18 @@ def no_user_homepage():
     :return: None
     """
     url = climate.login_uri(CLIMATE_API_ID, CLIMATE_API_SCOPES, redirect_uri())
-    return """
-            <h1>Partner API Demo Site</h1>
-            <h2>Welcome to the Climate Partner Demo App.</h2>
+
+    content = """
+    <h2>Welcome to the Climate Partner Demo App.</h2>
             <p>Imagine that this page is your great web application and you
             want to connect it with Climate FieldView. To do this, you need
             to let your users establish a secure connection between your app
             and FieldView. You do this using Log In with FieldView.</p>
             <p style="text-align:center"><a href="{}">
             <img src="./static/fv-login-button.png"
-            alt="FieldView Login"></a></p>""".format(url)
+            alt="FieldView Login"></a></p>
+    """.format(url)
+    return page(content)
 
 
 def user_homepage():
@@ -104,25 +114,25 @@ def user_homepage():
     refreshing the authorization token.
     :return: None
     """
-    return """
-           <h1>Partner API Demo Site</h1>
-           <p>User name retrieved from FieldView: {first} {last}</p>
-           <p>Access Token: {access_token}</p>
-           <p>Refresh Token: {refresh_token}
-           (<a href="{refresh}">Refresh</a>)</p>
-           <table style="border-spacing: 50px 0;"><tr><td>
-           <p><a href="{growing_seasons}">Growing Seasons</a></p>
-           <p><a href="{harvest_reports}">Harvest Reports</a></p>
-           </td></tr></table>
-           <p><a href="{logout}">Log out</a></p>
-           """.format(first=state('user')['firstname'],
-                      last=state('user')['lastname'],
-                      access_token=state('access_token'),
-                      refresh_token=state('refresh_token'),
-                      refresh=url_for('refresh_token'),
-                      logout=url_for('logout_redirect'),
-                      growing_seasons=url_for('growing_seasons'),
-                      harvest_reports=url_for('harvest_reports'))
+    content = """
+    <p>User name retrieved from FieldView: {first} {last}</p>
+    <p>Access Token: {access_token}</p>
+    <p>Refresh Token: {refresh_token}
+    (<a href="{refresh}">Refresh</a>)</p>
+    <table style="border-spacing: 50px 0;"><tr><td>
+    <p><a href="{growing_seasons}">Growing Seasons</a></p>
+    <p><a href="{harvest_reports}">Harvest Reports</a></p>
+    </td></tr></table>
+    <p><a href="{logout}">Log out</a></p>
+    """.format(first=state('user')['firstname'],
+               last=state('user')['lastname'],
+               access_token=state('access_token'),
+               refresh_token=state('refresh_token'),
+               refresh=url_for('refresh_token'),
+               logout=url_for('logout_redirect'),
+               growing_seasons=url_for('growing_seasons'),
+               harvest_reports=url_for('harvest_reports'))
+    return page(content)
 
 
 @app.route('/login-redirect')
@@ -203,27 +213,22 @@ def growing_seasons():
             field_id, state('access_token'), CLIMATE_API_KEY)
         growing_seasons_contents_url = url_for(
             'growing_seasons_contents', growing_seasons_id=growing_seasons_id)
-
-        return """
-            <h1>Partner API Demo Site</h1>
+        content = """
             <h2>Growing Seasons</h2>
             <p>Growing Seasons Ids: <a href="{growing_seasons_contents_url}">
             {growing_seasons_id}</a></a>
-            <p><a href="{home}">Return home</a></p>
-            """.format(
+        """.format(
             growing_seasons_contents_url=growing_seasons_contents_url,
-            growing_seasons_id=growing_seasons_id,
-            home=url_for('home'))
-
-    return """
-           <h1>Partner API Demo Site</h1>
-           <h2>Growing Seasons</h2>
-           <form method=post>
-           <p>Field ID: <input type=text name=field_id /></p>
-           <p><input type=submit value=Submit /></p>
-           </form>
-           <p><a href="{home}">Return home</a></p>
-           """.format(home=url_for('home'))
+            growing_seasons_id=growing_seasons_id)
+        return page(content)
+    content = """
+        <h2>Growing Seasons</h2>
+        <form method=post>
+        <p>Field ID: <input type=text name=field_id /></p>
+        <p><input type=submit value=Submit /></p>
+        </form>
+    """
+    return page(content)
 
 
 @app.route('/growingSeasonsContents/<growing_seasons_id>', methods=['GET'])
@@ -235,11 +240,11 @@ def growing_seasons_contents(growing_seasons_id):
     """
     response = climate.growingSeasonsContents(
         growing_seasons_id, state('access_token'), CLIMATE_API_KEY)
-    return """<h1>Partner API Demo Site</h1>
-            <h2>Growing Seasons Contents</h2>
-            <pre>{response}</pre>
-            <p><a href="{home}">Return home</a></p>""".format(
-        response=response, home=url_for('home'))
+    content = """
+        <h2>Growing Seasons Contents</h2>
+        <pre>{}</pre>
+    """.format(response)
+    return page(content)
 
 
 @app.route('/harvestReports', methods=['GET', 'POST'])
@@ -257,27 +262,24 @@ def harvest_reports():
             field_id, seasons, state('access_token'), CLIMATE_API_KEY)
         harvest_report_contents_url = url_for(
             'harvest_report_contents', harvest_report_id=harvest_report_id)
-
-        return """
-            <h1>Partner API Demo Site</h1>
+        content = """
             <h2>Harvest Report</h2>
             <p>Harvest Report Id: <a href="{harvest_report_contents_url}">
             {harvest_report_id}</a></p>
             <p><a href="{home}">Return home</a></p>
-            """.format(harvest_report_contents_url=harvest_report_contents_url,
-                       harvest_report_id=harvest_report_id,
-                       home=url_for('home'))
-    return """
-           <h1>Partner API Demo Site</h1>
-           <h2>Harvest Report</h2>
-           <form method=post>
-           <p>Field ID: <input type=text name=field_id /></p>
-           <label for="seasons">Growing Seasons (comma delimited):</label>
-           <textarea name=seasons rows="4" cols="50"/></textarea>
-           <p><input type=submit value=Submit /></p>
-           </form>
-           <p><a href="{home}">Return home</a></p>
-           """.format(home=url_for('home'))
+        """.format(harvest_report_contents_url=harvest_report_contents_url,
+                   harvest_report_id=harvest_report_id)
+        return page(content)
+    content = """
+        <h2>Harvest Report</h2>
+        <form method=post>
+        <p>Field ID: <input type=text name=field_id /></p>
+        <label for="seasons">Growing Seasons (comma delimited):</label>
+        <textarea name=seasons rows="4" cols="50"/></textarea>
+        <p><input type=submit value=Submit /></p>
+        </form>
+    """
+    return page(content)
 
 
 @app.route('/harvestReportsContents/<harvest_report_id>', methods=['GET'])
@@ -288,11 +290,11 @@ def harvest_report_contents(harvest_report_id):
     """
     response = climate.harvestReportsContents(
         harvest_report_id, state('access_token'), CLIMATE_API_KEY)
-    return """<h1>Partner API Demo Site</h1>
-            <h2>Harvest Reports Contents</h2>
-            <pre>{response}</pre>
-            <p><a href="{home}">Return home</a></p>""".format(
-        response=response, home=url_for('home'))
+    content = """
+        <h2>Harvest Reports Contents</h2>
+        <pre>{response}</pre>
+    """.format(response=response)
+    return page(content)
 
 
 # start app

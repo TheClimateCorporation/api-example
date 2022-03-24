@@ -3,12 +3,11 @@ Climate API demo code. This module shows how to:
 
 - Log in with Climate
 - Refresh the access_token
-- Fetch fields
-- Fetch field boundaries
-- Upload files
+- Fetch growing seasons
+- Fetch harvest reports
 
 License:
-Copyright © 2018 The Climate Corporation
+Copyright © 2022 Climate, LLC
 """
 
 import requests
@@ -22,7 +21,6 @@ from logger import Logger
 
 
 json_content_type = 'application/json'
-binary_content_type = 'application/octet-stream'
 
 base_login_uri = 'https://climate.com/static/app-login/index.html'
 token_uri = 'https://api.climate.com/api/oauth/token'
@@ -179,9 +177,7 @@ def growingSeasons(field_id, token, api_key):
     Logger().info(to_curl(res.request))
 
     if res.status_code == 202:
-        content_id = res.json()['contentId']
-        Logger().info("Growing Seasons Content Id: %s" % content_id)
-        return content_id
+        return res.json()['contentId']
     log_http_error(res)
     return False
 
@@ -232,9 +228,7 @@ def harvestReports(field_id, seasons, token, api_key):
     Logger().info(to_curl(res.request))
 
     if res.status_code == 202:
-        report_id = res.json()['id']
-        Logger().info("Report Id: %s" % report_id)
-        return report_id
+        return res.json()['id']
     log_http_error(res)
     return False
 
