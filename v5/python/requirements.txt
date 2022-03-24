@@ -1,0 +1,15 @@
+autopep8==1.6.0
+certifi==2021.10.8
+charset-normalizer==2.0.12
+click==8.0.4
+curlify==2.2.1
+Flask==2.0.3
+idna==3.3
+itsdangerous==2.1.1
+Jinja2==3.0.3
+MarkupSafe==2.1.1
+pycodestyle==2.8.0
+requests==2.27.1
+toml==0.10.2
+urllib3==1.26.9
+Werkzeug==2.0.3
