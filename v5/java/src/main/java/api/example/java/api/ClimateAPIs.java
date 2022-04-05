@@ -1,15 +1,11 @@
 package api.example.java.api;
 
-import api.example.java.model.GrowingSeasonsContentsResponse;
+import api.example.java.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import api.example.java.Config;
-import api.example.java.model.GrowingSeasons;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.HashMap;
@@ -24,7 +20,7 @@ public class ClimateAPIs {
     protected Config config;
 
     public GrowingSeasons createGrowingSeasons(String uri, String fieldId, String accessToken) {
-        Map<String, String> body = new HashMap();
+        Map<String, String> body = new HashMap<String, String>();
         body.put("fieldId", fieldId);
 
         GrowingSeasons growingSeasons = requestClient.getWebClientJSON(uri, accessToken, config.apiKey)
@@ -41,10 +37,29 @@ public class ClimateAPIs {
         GrowingSeasonsContentsResponse growingSeasonsContentsResponse = requestClient.getWebClient(
                 uri, accessToken, config.apiKey)
                 .get()
-//                .exchangeToMono(res -> res.bodyToMono(GrowingSeasonsContentsResponse.class))
                 .retrieve()
                 .bodyToMono(GrowingSeasonsContentsResponse.class)
                 .block();
         return growingSeasonsContentsResponse;
+    }
+
+    public HarvestReports createHarvestReport(String uri, HarvestReportsRequest input, String accessToken) {
+        HarvestReports harvestReports = requestClient.getWebClientJSON(uri, accessToken, config.apiKey)
+            .post()
+            .body(BodyInserters.fromValue(input))
+            .retrieve()
+            .bodyToMono(HarvestReports.class)
+            .block();
+        return harvestReports;
+    }
+
+    public HarvestReportsContentsResponse getHarvestReportsContents(String uri, String accessToken) {
+        HarvestReportsContentsResponse harvestReportsContentsResponse = requestClient.getWebClient(
+                uri, accessToken, config.apiKey)
+                .get()
+                .retrieve()
+                .bodyToMono(HarvestReportsContentsResponse.class)
+                .block();
+        return harvestReportsContentsResponse;
     }
 }

@@ -1,6 +1,6 @@
 package api.example.java.model;
 
-public class Field {
+public class GrowingSeasonsRequest {
     private String fieldId;
 
     public String getFieldId() {

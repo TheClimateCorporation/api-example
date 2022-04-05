@@ -1,3 +1,4 @@
+<base href="http://localhost:8080">
 <#if logout_link?has_content>
     <a href=${logout_link}>Logout</a>
 </#if>

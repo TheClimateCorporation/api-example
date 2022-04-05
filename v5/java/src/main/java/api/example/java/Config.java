@@ -36,16 +36,16 @@ public class Config {
     public String scopes;
 
     public Config() {
-        if (StringUtils.isEmpty(System.getenv("CLIENT_ID"))) {
+        if (!StringUtils.hasLength(System.getenv("CLIENT_ID"))) {
             throw new IllegalArgumentException("Please set environment variable CLIENT_ID");
         }
-        if (StringUtils.isEmpty(System.getenv("CLIENT_SECRET"))) {
+        if (!StringUtils.hasLength(System.getenv("CLIENT_SECRET"))) {
             throw new IllegalArgumentException("Please set environment variable CLIENT_SECRET");
         }
-        if (StringUtils.isEmpty(System.getenv("API_KEY"))) {
+        if (!StringUtils.hasLength(System.getenv("API_KEY"))) {
             throw new IllegalArgumentException("Please set environment variable API_KEY");
         }
-        if (StringUtils.isEmpty(System.getenv("API_SCOPES"))) {
+        if (!StringUtils.hasLength(System.getenv("API_SCOPES"))) {
             throw new IllegalArgumentException("Please set environment variable API_SCOPES");
         }
     }
@@ -75,11 +75,6 @@ public class Config {
         return getUriComponentsBuilder(tokenServer, tokenPath);
     }
 
-    public String buildAgronomicApiUri(String dataType) {
-        // https://platform.climate.com/v4/layers
-        return getUriComponentsBuilder(apiServer, "/v4/layers/" + dataType);
-    }
-
     public String getBase64Credentials() {
         return "Basic " + new String(Base64Utils.encode((clientId + ":" + clientSecret).getBytes()));
     }
@@ -88,13 +83,16 @@ public class Config {
         return getUriComponentsBuilder(apiServer, "/v5/growingSeasons");
     }
 
-    public String buildGrowingSeasonsContentIdApiUri(String id) {
+    public String buildGrowingSeasonsContentsIdApiUri(String id) {
         return getUriComponentsBuilder(apiServer, String.format("/v5/growingSeasonsContents/%s", id));
     }
 
-    public String buildAgronomicContentsApiUri(String id, String dataType) {
-        // https://platform.climate.com/v4/layers/id/contents
-        return getUriComponentsBuilder(apiServer, String.format("/v4/layers/%s/%s/contents", dataType, id));
+    public String buildHarvestReportsApiUri() {
+        return getUriComponentsBuilder(apiServer, "/v5/harvestReports");
+    }
+
+    public String buildHarvestReportsContentsIdApiUri(String id) {
+        return getUriComponentsBuilder(apiServer, String.format("/v5/harvestReportsContents/%s", id));
     }
 
     private String getUriComponentsBuilder(String host, String path) {
@@ -104,9 +102,5 @@ public class Config {
                 .path(path)
                 .build()
                 .toString();
-    }
-    public String buildFieldsApiUri() {
-        // https://platform.climate.com/v4/fields
-        return getUriComponentsBuilder(apiServer, "/v4/fields");
     }
 }

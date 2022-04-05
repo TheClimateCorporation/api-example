@@ -52,6 +52,14 @@ public class BaseController {
     }
 
     protected String growingSeasonsContentsApiUri(String id) {
-        return config.buildGrowingSeasonsContentIdApiUri(id);
+        return config.buildGrowingSeasonsContentsIdApiUri(id);
+    }
+
+    protected String harvestReportsApiUri() {
+        return config.buildHarvestReportsApiUri();
+    }
+
+    protected String harvestReportsContentsApiUri(String id) {
+        return config.buildHarvestReportsContentsIdApiUri(id);
     }
 }
