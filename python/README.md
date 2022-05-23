@@ -16,7 +16,7 @@ brew install python3
 ```bash
 python3 -m venv api-example
 source api-example/bin/activate
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 3. Set the following environment variables (or hardcode them in `main.py`)
