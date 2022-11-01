@@ -8,7 +8,7 @@ Example app exercising some of Climate's [FieldView Platform APIs](https://dev.f
 
 # License
 
-Copyright (C) 2022 The Climate Corporation. Distributed under the Apache License, Version 2.0. You may not use this library except in compliance with the License. You may obtain a copy of the License at
+Copyright (C) 2022 Climate LLC. Distributed under the Apache License, Version 2.0. You may not use this library except in compliance with the License. You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
 
