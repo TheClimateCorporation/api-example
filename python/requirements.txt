@@ -4,5 +4,5 @@ itsdangerous==2.1.2
 Jinja2==3.1.3
 MarkupSafe==2.1.2
 requests==2.31.0
-Werkzeug==2.3.3
+Werkzeug==2.3.8
 curlify==1.2.1
