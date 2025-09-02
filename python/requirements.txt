@@ -3,6 +3,6 @@ Flask==2.3.2
 itsdangerous==2.1.2
 Jinja2==3.1.6
 MarkupSafe==2.1.2
-requests==2.32.2
+requests==2.32.4
 Werkzeug==3.0.6
 curlify==1.2.1
